@@ -8,4 +8,6 @@ public interface KycOutPutPort {
     Kyc save(Kyc kyc);
     Optional<Kyc> findByUserId(String userId);
     Optional<Kyc> findById(String kycId);
+
+    Kyc findByIdAndUserId(String id, String userId);
 }
