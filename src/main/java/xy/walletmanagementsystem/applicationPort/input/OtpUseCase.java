@@ -1,6 +1,6 @@
 package xy.walletmanagementsystem.applicationPort.input;
 
-import xy.walletmanagementsystem.domain.OtpType;
+import xy.walletmanagementsystem.domain.enums.OtpType;
 import xy.walletmanagementsystem.domain.exception.WalletManagementException;
 import xy.walletmanagementsystem.domain.model.OtpDetails;
 
