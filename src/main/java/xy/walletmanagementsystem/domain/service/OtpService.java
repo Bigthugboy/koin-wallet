@@ -5,12 +5,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import xy.walletmanagementsystem.applicationPort.input.OtpUseCase;
 import xy.walletmanagementsystem.applicationPort.output.OtpOutPutPort;
+import xy.walletmanagementsystem.applicationPort.output.UserOutPutPort;
 import xy.walletmanagementsystem.domain.enums.OtpType;
 import xy.walletmanagementsystem.domain.exception.WalletManagementException;
 import xy.walletmanagementsystem.domain.model.OtpDetails;
+import xy.walletmanagementsystem.domain.model.User;
 import xy.walletmanagementsystem.infrastructure.input.rest.message.ErrorMessages;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -18,6 +21,7 @@ import java.util.Random;
 public class OtpService implements OtpUseCase {
 
     private final OtpOutPutPort otpOutPutPort;
+    private final UserOutPutPort userOutPutPort;
 
     @Override
     public OtpDetails generateOtp(String email, OtpType type) throws WalletManagementException {
@@ -48,15 +52,21 @@ public class OtpService implements OtpUseCase {
         if (!details.getOtp().equals(otp)) {
             throw new WalletManagementException(ErrorMessages.INVALID_OTP);
         }
+        Optional<User> user = userOutPutPort.findByEmail(email);
+        if (user.isEmpty()) {
+            throw new WalletManagementException(ErrorMessages.USER_NOT_FOUND);
+        }
+        user.get().setEmailVerified(true);
+        userOutPutPort.save(user.get());
         otpOutPutPort.deleteByEmailAndType(email, type.name());
         return true;
     }
 
     @Override
-    public OtpDetails resendOtp(String email, OtpType type) throws WalletManagementException {
+    public void resendOtp(String email, OtpType type) throws WalletManagementException {
         validateRequests(email, type);
         otpOutPutPort.deleteByEmailAndType(email, type.name());
-        return generateOtp(email, type);
+        generateOtp(email, type);
     }
 
     private void validateRequests(String email, OtpType type) throws WalletManagementException {
@@ -66,14 +76,6 @@ public class OtpService implements OtpUseCase {
         if (StringUtils.isBlank(email)) {
             throw new WalletManagementException(ErrorMessages.EMAIL_IS_REQUIRED);
         }
-         if (type == null) {
-            throw new WalletManagementException(ErrorMessages.OTP_TYPE_IS_REQUIRED);
-        }
     }
 
-    @Override
-    public boolean isVerified(String email) throws WalletManagementException {
-
-        return false;
-    }
 }
