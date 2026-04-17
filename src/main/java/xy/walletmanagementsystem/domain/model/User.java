@@ -23,6 +23,7 @@ public class User {
     private String passwordHash;
     private AccountStatus status;
     private UserRole role;
+    private boolean emailVerified;
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
 }
