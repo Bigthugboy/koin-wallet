@@ -7,8 +7,8 @@ import xy.walletmanagementsystem.domain.model.OtpDetails;
 public interface OtpUseCase {
     OtpDetails generateOtp(String email, OtpType type) throws WalletManagementException;
     boolean verifyOtp(String email, String otp, OtpType type) throws WalletManagementException;
-    OtpDetails resendOtp(String email, OtpType type) throws WalletManagementException;
+    void resendOtp(String email, OtpType type) throws WalletManagementException;
 
-    boolean isVerified(String email) throws WalletManagementException;
+
 
 }
