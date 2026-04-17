@@ -3,6 +3,7 @@ package xy.walletmanagementsystem.domain.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import xy.walletmanagementsystem.domain.enums.UserRole;
 
 import java.time.LocalDateTime;
 
@@ -11,9 +12,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class User {
     private String id;
-    private String name;
+    private String firstName;
+    private String lastName;
     private String email;
-    private String password;
+    private String passwordHash;
+    private UserRole role;
     private LocalDateTime dateCreated;
     private LocalDateTime dateUpdated;
 
