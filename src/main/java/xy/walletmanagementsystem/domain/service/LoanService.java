@@ -25,7 +25,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class LoanService implements LoanUseCase {
-
     private final LoanOutPutPort loanOutPutPort;
     private final WalletOutPutPort walletOutPutPort;
     private final TransactionOutPutPort transactionOutPutPort;
@@ -33,42 +32,27 @@ public class LoanService implements LoanUseCase {
     @Override
     @Transactional
     public Loan applyForLoan(String userId, BigDecimal amount, Integer durationInDays) throws WalletManagementException {
+        validateRequest(userId, amount, durationInDays);
         Wallet wallet = walletOutPutPort.findByUserId(userId)
-                .orElseThrow(() -> new WalletManagementException("Wallet not found. Please create a wallet first."));
-
+                .orElseThrow(() -> new WalletManagementException(ErrorMessages.WALLET_NOT_FOUND));
         if (wallet.getBalance().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new WalletManagementException("Only users with funded wallets can apply for loans.");
+            throw new WalletManagementException(ErrorMessages.WALLET_NOT_FUNDED);
         }
-
         BigDecimal maxLoanAmount = wallet.getBalance().multiply(new BigDecimal("3"));
         if (amount.compareTo(maxLoanAmount) > 0) {
-            throw new WalletManagementException("Loan amount exceeds 3x wallet balance limit.");
+            throw new WalletManagementException(ErrorMessages.LOAN_AMOUNT_EXCEEDS_MAXIMUM_ALLOWED);
         }
-
-        Loan loan = Loan.builder()
-                .loanId(UUID.randomUUID().toString())
-                .userId(userId)
-                .amount(amount)
-                .interestRate(new BigDecimal("5.0")) // Default interest rate
-                .durationInDays(durationInDays)
-                .status(LoanStatus.PENDING)
-                .repaymentSchedule("[]") // Placeholder for JSON schedule
-                .createdDate(LocalDateTime.now())
-                .updatedDate(LocalDateTime.now())
-                .build();
-
-        return loanOutPutPort.save(loan);
+        return loanOutPutPort.save(buildLoanDetails(userId, amount, durationInDays));
     }
+
 
     @Override
     public Loan approveLoan(String loanId) throws WalletManagementException {
         Loan loan = loanOutPutPort.findById(loanId)
-                .orElseThrow(() -> new WalletManagementException("Loan not found"));
-        
+                .orElseThrow(() -> new WalletManagementException(ErrorMessages.LOAN_NOT_FOUND));
         if (loan.getStatus() != LoanStatus.PENDING) {
-            throw new WalletManagementException("Only pending loans can be approved");
+            throw new WalletManagementException(ErrorMessages.LOAN_STATUS_IS_NOT_PENDING);
         }
-
         loan.setStatus(LoanStatus.APPROVED);
         loan.setUpdatedDate(LocalDateTime.now());
         return loanOutPutPort.save(loan);
@@ -77,41 +61,30 @@ public class LoanService implements LoanUseCase {
     @Override
     @Transactional
     public Loan disburseLoan(String loanId) throws WalletManagementException {
+        if(StringUtils.isBlank(loanId)) {
+            throw new WalletManagementException(ErrorMessages.LOAN_ID_IS_REQUIRED);
+        }
         Loan loan = loanOutPutPort.findById(loanId)
-                .orElseThrow(() -> new WalletManagementException("Loan not found"));
+                .orElseThrow(() -> new WalletManagementException(ErrorMessages.LOAN_NOT_FOUND));
 
         if (loan.getStatus() != LoanStatus.APPROVED) {
-            throw new WalletManagementException("Loan must be approved before disbursement");
+            throw new WalletManagementException(ErrorMessages.LOAN_STATUS_IS_NOT_APPROVED);
         }
 
         Wallet wallet = walletOutPutPort.findByUserId(loan.getUserId())
-                .orElseThrow(() -> new WalletManagementException("Wallet not found"));
+                .orElseThrow(() -> new WalletManagementException(ErrorMessages.WALLET_NOT_FOUND));
 
         // Update balance
-        wallet.setBalance(wallet.getBalance().add(loan.getAmount()));
-        wallet.setUpdatedDate(LocalDateTime.now());
-        walletOutPutPort.save(wallet);
+        updateWallet(wallet, loan);
 
         // Update loan status
-        loan.setStatus(LoanStatus.DISBURSED);
-        loan.setUpdatedDate(LocalDateTime.now());
-        Loan savedLoan = loanOutPutPort.save(loan);
+        Loan savedLoan = updateLoan(loan);
 
         // Log transaction
-        Transaction transaction = Transaction.builder()
-                .transactionId(UUID.randomUUID().toString())
-                .userId(loan.getUserId())
-                .walletId(wallet.getWalletId())
-                .type(TransactionType.LOAN_DISBURSEMENT)
-                .amount(loan.getAmount())
-                .status(TransactionStatus.SUCCESSFUL)
-                .referenceNumber("DISB-" + loan.getLoanId())
-                .timestamp(LocalDateTime.now())
-                .build();
-        transactionOutPutPort.save(transaction);
-
+        saveLoanTransaction(loan, wallet);
         return savedLoan;
     }
+
 
     @Override
     @Transactional
@@ -137,27 +110,15 @@ public class LoanService implements LoanUseCase {
         }
 
         // Deduct from wallet
-        wallet.setBalance(wallet.getBalance().subtract(amount));
-        wallet.setUpdatedDate(LocalDateTime.now());
-        walletOutPutPort.save(wallet);
+        updateWalletForLoanRepayment(amount, wallet);
 
         // Update loan - for simplicity, if amount >= loan amount + interest, mark as repaid
         // In a real system, we'd track remaining balance
-        loan.setStatus(LoanStatus.REPAID);
-        loan.setUpdatedDate(LocalDateTime.now());
-        loanOutPutPort.save(loan);
+        updateLoanStatusForRepayment(loan);
 
         // Log transaction
-        Transaction transaction = Transaction.builder()
-                .userId(loan.getUserId())
-                .walletId(wallet.getWalletId())
-                .type(TransactionType.REPAYMENT)
-                .amount(amount)
-                .status(TransactionStatus.SUCCESSFUL)
-                .referenceNumber("REPAY-" + UUID.randomUUID().toString().substring(0, 8))
-                .timestamp(LocalDateTime.now())
-                .build();
-        transactionOutPutPort.save(transaction);
+         saveLoanRepaymentTransaction(amount, loan, wallet);
+
     }
 
     @Override
@@ -181,4 +142,81 @@ public class LoanService implements LoanUseCase {
     public List<Loan> listAllLoans() throws WalletManagementException {
         return loanOutPutPort.findAll();
     }
+
+
+    private static Loan buildLoanDetails(String userId, BigDecimal amount, Integer durationInDays) {
+        return Loan.builder()
+                .userId(userId)
+                .amount(amount)
+                .interestRate(new BigDecimal("5.0")) // Default interest rate
+                .durationInDays(durationInDays)
+                .status(LoanStatus.PENDING)
+                .repaymentSchedule("[]") // Placeholder for JSON schedule
+                .createdDate(LocalDateTime.now())
+                .updatedDate(LocalDateTime.now())
+                .build();
+    }
+
+    private static void validateRequest(String userId, BigDecimal amount, Integer durationInDays) throws WalletManagementException {
+        if(StringUtils.isBlank(userId)) {
+            throw new WalletManagementException(ErrorMessages.USER_ID_IS_REQUIRED);
+        }
+        if(amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new WalletManagementException(ErrorMessages.LOAN_AMOUNT_MUST_BE_POSITIVE);
+        }
+        if(durationInDays == null || durationInDays <= 0) {
+            throw new WalletManagementException(ErrorMessages.LOAN_DURATION_MUST_BE_POSITIVE);
+        }
+    }
+    private void updateLoanStatusForRepayment(Loan loan) {
+        loan.setStatus(LoanStatus.REPAID);
+        loan.setUpdatedDate(LocalDateTime.now());
+        loanOutPutPort.save(loan);
+    }
+
+    private void updateWalletForLoanRepayment(BigDecimal amount, Wallet wallet) {
+        wallet.setBalance(wallet.getBalance().subtract(amount));
+        wallet.setUpdatedDate(LocalDateTime.now());
+        walletOutPutPort.save(wallet);
+    }
+
+    private void  saveLoanRepaymentTransaction(BigDecimal amount, Loan loan, Wallet wallet) {
+        Transaction transaction = Transaction.builder()
+                .userId(loan.getUserId())
+                .walletId(wallet.getWalletId())
+                .type(TransactionType.REPAYMENT)
+                .amount(amount)
+                .status(TransactionStatus.SUCCESSFUL)
+                .referenceNumber("REPAY-" + UUID.randomUUID().toString().substring(0, 8))
+                .timestamp(LocalDateTime.now())
+                .build();
+        transactionOutPutPort.save(transaction);
+    }
+
+    private void saveLoanTransaction(Loan loan, Wallet wallet) {
+        Transaction transaction = Transaction.builder()
+                .userId(loan.getUserId())
+                .walletId(wallet.getWalletId())
+                .type(TransactionType.LOAN_DISBURSEMENT)
+                .amount(loan.getAmount())
+                .status(TransactionStatus.SUCCESSFUL)
+                .referenceNumber("DISB-" + loan.getLoanId())
+                .timestamp(LocalDateTime.now())
+                .build();
+        transactionOutPutPort.save(transaction);
+    }
+
+    private Loan updateLoan(Loan loan) {
+        loan.setStatus(LoanStatus.DISBURSED);
+        loan.setUpdatedDate(LocalDateTime.now());
+        return loanOutPutPort.save(loan);
+    }
+
+    private void updateWallet(Wallet wallet, Loan loan) {
+        wallet.setBalance(wallet.getBalance().add(loan.getAmount()));
+        wallet.setUpdatedDate(LocalDateTime.now());
+        walletOutPutPort.save(wallet);
+    }
+
+
 }
