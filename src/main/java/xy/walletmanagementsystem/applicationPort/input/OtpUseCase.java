@@ -9,4 +9,6 @@ public interface OtpUseCase {
     boolean verifyOtp(String email, String otp, OtpType type) throws WalletManagementException;
     OtpDetails resendOtp(String email, OtpType type) throws WalletManagementException;
 
+    boolean isVerified(String email) throws WalletManagementException;
+
 }
