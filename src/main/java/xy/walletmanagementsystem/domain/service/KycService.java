@@ -38,30 +38,6 @@ public class KycService implements KycUseCase {
         return savedKyc;
     }
 
-    private void validateHasBvnOrNin(String bvn, String nin) throws WalletManagementException {
-        if (StringUtils.isBlank(bvn) && StringUtils.isBlank(nin)) {
-            throw new WalletManagementException(ErrorMessages.BVN_OR_NIN_MUST_IS_REQUIRED_FOR_USER_KYC_VERIFICATION);
-        }
-            if (StringUtils.isNotBlank(bvn) && !bvn.matches("^\\d{11}$")) {
-                throw new WalletManagementException(ErrorMessages.BVN_MUST_CONTAIN_EXACTLY_11_DIGITS);
-            }
-            if(StringUtils.isNotBlank(nin) && !nin.matches("^\\d{11}$")) {
-                throw new WalletManagementException(ErrorMessages.NIN_MUST_CONTAIN_EXACTLY_11_DIGITS);
-            }
-
-    }
-
-    private static Kyc buildKycDetails(String userId, String bvn, String nin) {
-        return Kyc.builder()
-                .userId(userId)
-                .bvn(bvn)
-                .nin(nin)
-                .kycStatus(KycStatus.PENDING)
-                .createdDate(LocalDateTime.now())
-                .updatedDate(LocalDateTime.now())
-                .build();
-    }
-
     @Override
     public Kyc getKycDetails(String userId) throws WalletManagementException {
         return kycOutPutPort.findByUserId(userId)
@@ -121,25 +97,6 @@ public class KycService implements KycUseCase {
         }
     }
 
-
-//    private void validateUserKyc(Kyc kyc) throws WalletManagementException {
-//        boolean hasBvn = StringUtils.isNotBlank(kyc.getBvn());
-//        boolean hasNin = StringUtils.isNotBlank(kyc.getNin());
-//
-//        if (!hasBvn && !hasNin) {
-//            throw new WalletManagementException(ErrorMessages.BVN_OR_NIN_MUST_IS_REQUIRED_FOR_USER_KYC_VERIFICATION);
-//        }
-//
-//        if (hasBvn && !kyc.getBvn().matches("^\\d{11}$")) {
-//            throw new WalletManagementException(ErrorMessages.BVN_MUST_CONTAIN_EXACTLY_11_DIGITS);
-//        }
-//
-//        if (hasNin && !kyc.getNin().matches("^\\d{11}$")) {
-//            throw new WalletManagementException(ErrorMessages.NIN_MUST_CONTAIN_EXACTLY_11_DIGITS);
-//        }
-//    }
-//
-
     public Kyc approveKyc(String id, String ownerId, String reviewedBy)
             throws WalletManagementException {
 
@@ -170,5 +127,29 @@ public class KycService implements KycUseCase {
         kyc.setKycStatus(KycStatus.REJECTED);
         kyc.setUpdatedDate(LocalDateTime.now(ZoneOffset.UTC));
         return kycOutPutPort.save(kyc);
+    }
+
+    private void validateHasBvnOrNin(String bvn, String nin) throws WalletManagementException {
+        if (StringUtils.isBlank(bvn) && StringUtils.isBlank(nin)) {
+            throw new WalletManagementException(ErrorMessages.BVN_OR_NIN_MUST_IS_REQUIRED_FOR_USER_KYC_VERIFICATION);
+        }
+        if (StringUtils.isNotBlank(bvn) && !bvn.matches("^\\d{11}$")) {
+            throw new WalletManagementException(ErrorMessages.BVN_MUST_CONTAIN_EXACTLY_11_DIGITS);
+        }
+        if(StringUtils.isNotBlank(nin) && !nin.matches("^\\d{11}$")) {
+            throw new WalletManagementException(ErrorMessages.NIN_MUST_CONTAIN_EXACTLY_11_DIGITS);
+        }
+
+    }
+
+    private static Kyc buildKycDetails(String userId, String bvn, String nin) {
+        return Kyc.builder()
+                .userId(userId)
+                .bvn(bvn)
+                .nin(nin)
+                .kycStatus(KycStatus.PENDING)
+                .createdDate(LocalDateTime.now())
+                .updatedDate(LocalDateTime.now())
+                .build();
     }
 }
