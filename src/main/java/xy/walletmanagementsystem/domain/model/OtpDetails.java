@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import xy.walletmanagementsystem.domain.enums.OtpType;
 
 import java.time.LocalDateTime;
 
@@ -13,6 +14,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OtpDetails {
+    private String email;
     private String otp;
-    private LocalDateTime expiresAt;
+    private OtpType type;
+    private LocalDateTime dateExpires;
+    private LocalDateTime dateCreated;
 }

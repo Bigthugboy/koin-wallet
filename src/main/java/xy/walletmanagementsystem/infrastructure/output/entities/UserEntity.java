@@ -1,5 +1,6 @@
-package xy.walletmanagementsystem.domain.model;
+package xy.walletmanagementsystem.infrastructure.output.entities;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,20 +11,36 @@ import xy.walletmanagementsystem.domain.enums.UserRole;
 
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "users")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class User {
+public class UserEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String id;
+
+    @Column(nullable = false)
     private String fullName;
+
+    @Column(unique = true, nullable = false)
     private String email;
+
+    @Column(unique = true, nullable = false)
     private String phoneNumber;
+
+    @Column(nullable = false)
     private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
     private AccountStatus status;
+
+    @Enumerated(EnumType.STRING)
     private UserRole role;
-    private boolean emailVerified;
+
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
 }

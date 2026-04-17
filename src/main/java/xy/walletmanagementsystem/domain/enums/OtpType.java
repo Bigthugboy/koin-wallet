@@ -1,4 +1,4 @@
-package xy.walletmanagementsystem.domain;
+package xy.walletmanagementsystem.domain.enums;
 
 public enum OtpType {
     REGISTRATION,

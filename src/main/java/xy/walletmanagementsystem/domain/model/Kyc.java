@@ -5,8 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import xy.walletmanagementsystem.domain.enums.AccountStatus;
-import xy.walletmanagementsystem.domain.enums.UserRole;
+import xy.walletmanagementsystem.domain.enums.KycStatus;
+import xy.walletmanagementsystem.domain.enums.KycVerificationStatus;
 
 import java.time.LocalDateTime;
 
@@ -15,15 +15,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class User {
+public class Kyc {
     private String id;
-    private String fullName;
-    private String email;
-    private String phoneNumber;
-    private String passwordHash;
-    private AccountStatus status;
-    private UserRole role;
-    private boolean emailVerified;
+    private String userId;
+    private String bvn;
+    private String nin;
+    private KycStatus kycStatus;
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
 }
