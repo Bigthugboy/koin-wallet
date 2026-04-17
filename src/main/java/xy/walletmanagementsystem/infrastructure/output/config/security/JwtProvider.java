@@ -96,9 +96,7 @@ public class JwtProvider {
 
     private Map<String, Object> buildUserClaims(User user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("firstName", user.getFirstName());
-        claims.put("lastName", user.getLastName());
-        claims.put("name", String.format("%s %s", user.getFirstName(), user.getLastName()).trim());
+        claims.put("name", user.getFullName());
         claims.put("email", user.getEmail());
         claims.put("role", user.getRole() != null ? user.getRole().name() : null);
         return claims;
