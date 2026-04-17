@@ -2,16 +2,21 @@ package xy.walletmanagementsystem.domain.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import xy.walletmanagementsystem.applicationPort.input.AuthUseCase;
+import xy.walletmanagementsystem.applicationPort.input.OtpUseCase;
 import xy.walletmanagementsystem.applicationPort.input.WalletUseCase;
+import xy.walletmanagementsystem.applicationPort.output.TokenBlacklistOutPutPort;
 import xy.walletmanagementsystem.applicationPort.output.UserOutPutPort;
 import xy.walletmanagementsystem.domain.enums.AccountStatus;
+import xy.walletmanagementsystem.domain.enums.OtpType;
 import xy.walletmanagementsystem.domain.enums.UserRole;
 import xy.walletmanagementsystem.domain.exception.WalletManagementException;
 import xy.walletmanagementsystem.domain.model.AuthResponse;
@@ -20,7 +25,9 @@ import xy.walletmanagementsystem.infrastructure.input.rest.message.ErrorMessages
 import xy.walletmanagementsystem.infrastructure.output.config.security.JwtProvider;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -32,6 +39,8 @@ public class AuthService implements AuthUseCase {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final AuthenticationManager authenticationManager;
+    private final TokenBlacklistOutPutPort tokenBlacklistOutPutPort;
+    private final OtpUseCase otpUseCase;
 
     @Override
     @Transactional
@@ -55,53 +64,121 @@ public class AuthService implements AuthUseCase {
 
     @Override
     public AuthResponse login(String email, String password) throws WalletManagementException {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(email, password)
-            );
-
-            String token = jwtProvider.generateAccessToken(authentication);
-            
-            return AuthResponse.builder()
-                    .accessToken(token)
-                    .issuedAt(LocalDateTime.now())
-                    .expiresAt(LocalDateTime.now().plusHours(24)) // Simplified
-                    .build();
-        } catch (Exception e) {
-            log.error("Login failed for email: {}", email, e);
-            throw new WalletManagementException("Invalid email or password");
+        validateEmailAndPassword(email, password);
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        Optional<User> user = userOutPutPort.findByEmail(email);
+        if (user.isEmpty()) {
+            throw new WalletManagementException(ErrorMessages.USER_NOT_FOUND);
         }
+//        if (!Boolean.TRUE.equals(user.getEmailVerified())) {
+//            throw new FundsTrackerException(ErrorMessages.EMAIL_NOT_VERIFIED, HttpStatus.UNAUTHORIZED);
+//        }
+        String accessToken = jwtProvider.generateAccessToken(user.get());
+        String refreshToken = jwtProvider.generateRefreshToken(user.get());
+        LocalDateTime issuedAt = LocalDateTime.now();
+        LocalDateTime expiresAt = jwtProvider.getExpirationFromToken(accessToken)
+                .toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .type("Bearer")
+                .issuedAt(issuedAt)
+                .expiresAt(expiresAt)
+                .build();
     }
 
     @Override
     public void forgetPassword(String email) throws WalletManagementException {
-        // To be implemented with OtpUseCase
+        validateEmailFormat(email);
+        if (userOutPutPort.existsByEmail(email)) {
+            otpUseCase.generateOtp(email, OtpType.FORGOT_PASSWORD);
+            log.info("Forget password OTP triggered for {}", email);
+        } else {
+            throw new WalletManagementException(ErrorMessages.USER_NOT_FOUND);
+        }
     }
 
     @Override
     public void resetPassword(String email, String otp, String newPassword) throws WalletManagementException {
-        // To be implemented with OtpUseCase
+        validateEmailFormat(email);
+        if (StringUtils.isBlank(otp)) {
+            throw new WalletManagementException(ErrorMessages.OTP_IS_REQUIRED);
+        }
+        if (StringUtils.isBlank(newPassword)) {
+            throw new WalletManagementException(ErrorMessages.NEW_PASSWORD_IS_REQUIRED);
+        }
+        boolean isVerified = otpUseCase.verifyOtp(email, otp, OtpType.FORGOT_PASSWORD);
+        if (isVerified) {
+            Optional<User> user = userOutPutPort.findByEmail(email);
+            if (user.isEmpty()){
+                throw new WalletManagementException(ErrorMessages.USER_NOT_FOUND);
+            }
+            user.get().setPasswordHash(passwordEncoder.encode(newPassword));
+            userOutPutPort.save(user.get());
+            log.info("Password reset successful for user {}", email);
+        } else {
+            throw new WalletManagementException(ErrorMessages.OTP_INVALID);
+        }
     }
 
     @Override
     public void logout(String userId, String token) throws WalletManagementException {
-        // To be implemented with TokenBlacklistOutPutPort
+        if (StringUtils.isBlank(userId)) {
+            throw new WalletManagementException(ErrorMessages.USER_ID_IS_REQUIRED);
+        }
+        Optional<User> user = userOutPutPort.findById(userId);
+        if (user.isEmpty()){
+            throw new WalletManagementException(ErrorMessages.USER_NOT_FOUND);
+        }
+        if (token != null) {
+            try {
+                Date expiration = jwtProvider.getExpirationFromToken(token);
+                long remainingTimeMs = expiration.getTime() - System.currentTimeMillis();
+                if (remainingTimeMs > 0) {
+                    tokenBlacklistOutPutPort.blacklistToken(token, remainingTimeMs);
+                }
+            } catch (Exception e) {
+                log.warn("Could not blacklist token during logout for user {}: {}", userId, e.getMessage());
+            }
+        }
+        log.info("User {} logged out successfully", userId);
     }
+
+
 
     @Override
     public void changePassword(String userId, String currentPassword, String newPassword, String confirmNewPassword) throws WalletManagementException {
         if (!newPassword.equals(confirmNewPassword)) {
-            throw new WalletManagementException("Passwords do not match");
+            throw new WalletManagementException(ErrorMessages.PASSWORDS_DO_NOT_MATCH);
         }
         User user = userOutPutPort.findById(userId)
-                .orElseThrow(() -> new WalletManagementException("User not found"));
+                .orElseThrow(() -> new WalletManagementException(ErrorMessages.USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
-            throw new WalletManagementException("Invalid current password");
+            throw new WalletManagementException(ErrorMessages.OLD_PASSWORD_INCORRECT);
         }
-
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         user.setUpdatedDate(LocalDateTime.now());
         userOutPutPort.save(user);
+    }
+
+    private void validateEmailAndPassword(String email, String password) throws WalletManagementException {
+        validateEmailFormat(email);
+        if(StringUtils.isBlank(password)) {
+            throw new WalletManagementException(ErrorMessages.INVALID_CREDENTIALS);
+        }
+    }
+
+    private void validateEmailFormat(String email) throws WalletManagementException {
+        if (StringUtils.isBlank(email)) {
+            throw new WalletManagementException(ErrorMessages.EMAIL_IS_REQUIRED);
+        }
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
+        if (!email.matches(emailRegex)) {
+            throw new WalletManagementException(ErrorMessages.INVALID_EMAIL);
+        }
     }
 }
