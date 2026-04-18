@@ -44,7 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     filterChain.doFilter(request, response);
                     return;
                 }
-                String userId = jwtProvider.getUserIdFromToken(jwt);
+                Long userId = jwtProvider.getUserIdFromToken(jwt);
                 String email = userOutPutPort.findById(userId)
                         .map(User::getEmail)
                         .orElse(null);
