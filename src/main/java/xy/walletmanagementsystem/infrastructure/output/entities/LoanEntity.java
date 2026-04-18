@@ -25,7 +25,7 @@ public class LoanEntity {
     private Long id;
 
     @Column(nullable = false)
-    private String userId;
+    private Long userId;
 
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;
