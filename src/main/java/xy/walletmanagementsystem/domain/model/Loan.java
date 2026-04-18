@@ -16,8 +16,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class Loan {
-    private String loanId;
-    private String userId;
+    private Long loanId;
+    private Long userId;
     private BigDecimal amount;
     private BigDecimal interestRate;
     private Integer durationInDays;
