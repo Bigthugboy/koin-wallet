@@ -50,14 +50,14 @@ public class LoanController {
 
     @PostMapping("/{loanId}/approve")
     @Operation(summary = SwaggerUiConstants.APPROVE_LOAN_SUMMARY, description = SwaggerUiConstants.APPROVE_LOAN_DESCRIPTION)
-    public ResponseEntity<ApiResponse<LoanResponse>> approveLoan(@PathVariable String loanId) throws WalletManagementException {
+    public ResponseEntity<ApiResponse<LoanResponse>> approveLoan(@PathVariable Long loanId) throws WalletManagementException {
         Loan loan = loanUseCase.approveLoan(loanId);
         return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(loan), "Loan approved successfully"));
     }
 
     @PostMapping("/{loanId}/disburse")
     @Operation(summary = SwaggerUiConstants.DISBURSE_LOAN_SUMMARY, description = SwaggerUiConstants.DISBURSE_LOAN_DESCRIPTION)
-    public ResponseEntity<ApiResponse<LoanResponse>> disburseLoan(@PathVariable String loanId) throws WalletManagementException {
+    public ResponseEntity<ApiResponse<LoanResponse>> disburseLoan(@PathVariable Long loanId) throws WalletManagementException {
         Loan loan = loanUseCase.disburseLoan(loanId);
         return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(loan), "Loan disbursed successfully"));
     }
@@ -65,7 +65,7 @@ public class LoanController {
     @PostMapping("/{loanId}/repay")
     @Operation(summary = SwaggerUiConstants.REPAY_LOAN_SUMMARY, description = SwaggerUiConstants.REPAY_LOAN_DESCRIPTION)
     public ResponseEntity<ApiResponse<String>> repayLoan(
-            @PathVariable String loanId, 
+            @PathVariable Long loanId, 
             @RequestParam BigDecimal amount,
             @RequestHeader(value = IDEMPOTENCY_KEY, required = false) String idempotencyKey
     ) throws WalletManagementException {
@@ -75,7 +75,7 @@ public class LoanController {
 
     @GetMapping("/{loanId}")
     @Operation(summary = SwaggerUiConstants.GET_LOAN_DETAILS_SUMMARY, description = SwaggerUiConstants.GET_LOAN_DETAILS_DESCRIPTION)
-    public ResponseEntity<ApiResponse<LoanResponse>> getLoanDetails(@PathVariable String loanId) throws WalletManagementException {
+    public ResponseEntity<ApiResponse<LoanResponse>> getLoanDetails(@PathVariable Long loanId) throws WalletManagementException {
         Loan loan = loanUseCase.getLoanDetails(loanId);
         return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(loan), "Loan details retrieved successfully"));
     }
