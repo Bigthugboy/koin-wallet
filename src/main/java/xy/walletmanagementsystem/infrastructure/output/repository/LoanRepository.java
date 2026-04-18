@@ -5,6 +5,6 @@ import xy.walletmanagementsystem.infrastructure.output.entities.LoanEntity;
 
 import java.util.List;
 
-public interface LoanRepository extends JpaRepository<LoanEntity, String> {
+public interface LoanRepository extends JpaRepository<LoanEntity, Long> {
     List<LoanEntity> findByUserId(String userId);
 }
