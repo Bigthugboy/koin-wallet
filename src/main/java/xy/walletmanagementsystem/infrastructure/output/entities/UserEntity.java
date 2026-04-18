@@ -44,6 +44,6 @@ public class UserEntity {
     @Column(nullable = false)
     private boolean emailVerified;
 
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedDate;
+    private LocalDateTime dateCreated;
+    private LocalDateTime dateUpdate;
 }
