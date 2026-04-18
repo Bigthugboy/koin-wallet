@@ -20,6 +20,6 @@ public class Kyc {
     private String bvn;
     private String nin;
     private KycStatus kycStatus;
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedDate;
+    private LocalDateTime dateCreated;
+    private LocalDateTime dateUpdate;
 }
