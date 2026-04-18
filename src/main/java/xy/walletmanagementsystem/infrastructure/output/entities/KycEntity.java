@@ -24,7 +24,7 @@ public class KycEntity {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String userId;
+    private Long userId;
 
     @Column(unique = true)
     private String bvn;
