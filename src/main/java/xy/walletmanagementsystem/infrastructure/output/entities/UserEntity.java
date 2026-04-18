@@ -18,9 +18,8 @@ import java.util.UUID;
 @Builder
 public class UserEntity {
     @Id
-    @UuidGenerator
-    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private Long id;
 
     @Column(nullable = false)
     private String fullName;
