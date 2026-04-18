@@ -9,7 +9,6 @@ import xy.walletmanagementsystem.applicationPort.output.NotificationOutPutPort;
 import xy.walletmanagementsystem.applicationPort.output.UserOutPutPort;
 import xy.walletmanagementsystem.domain.enums.LoanStatus;
 import xy.walletmanagementsystem.domain.model.Loan;
-import xy.walletmanagementsystem.domain.model.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,15 +32,18 @@ public class LoanScheduler {
                 .filter(loan -> loan.getStatus() == LoanStatus.DISBURSED)
                 .toList();
 
-        LocalDateTime reminderThreshold = LocalDateTime.now().plusDays(3);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime reminderTargetDate = now.plusDays(3);
 
         for (Loan loan : disbursedLoans) {
-            // Logic to check if due date is within threshold
-            // Simplified for this simulation
-            userOutPutPort.findById(loan.getUserId()).ifPresent(user -> {
-                notificationOutPutPort.sendLoanNotification(user.getEmail(), 
-                        "Reminder: Your loan of " + loan.getAmount() + " is due soon.");
-            });
+            LocalDateTime dueDate = calculateDueDate(loan);
+            if (dueDate.toLocalDate().isEqual(reminderTargetDate.toLocalDate())) {
+                userOutPutPort.findById(loan.getUserId()).ifPresent(user ->
+                        notificationOutPutPort.sendLoanNotification(
+                                user.getEmail(),
+                                "Reminder: Your loan repayment of " + loan.getAmount() + " is due on " + dueDate.toLocalDate()
+                        ));
+            }
         }
     }
 
@@ -58,13 +60,18 @@ public class LoanScheduler {
         LocalDateTime now = LocalDateTime.now();
 
         for (Loan loan : disbursedLoans) {
-            // Simplified: if createdDate + duration < now, mark defaulted
-            if (loan.getCreatedDate().plusDays(loan.getDurationInDays()).isBefore(now)) {
+            LocalDateTime dueDate = calculateDueDate(loan);
+            if (dueDate.isBefore(now)) {
                 log.warn("Marking loan {} as DEFAULTED", loan.getLoanId());
                 loan.setStatus(LoanStatus.DEFAULTED);
                 loan.setUpdatedDate(now);
                 loanOutPutPort.save(loan);
             }
         }
+    }
+
+    private LocalDateTime calculateDueDate(Loan loan) {
+        LocalDateTime disbursementDate = loan.getUpdatedDate() != null ? loan.getUpdatedDate() : loan.getCreatedDate();
+        return disbursementDate.plusDays(loan.getDurationInDays());
     }
 }
