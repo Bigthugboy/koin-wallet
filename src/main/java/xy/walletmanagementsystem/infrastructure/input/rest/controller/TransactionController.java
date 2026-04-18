@@ -41,7 +41,7 @@ public class TransactionController {
 
     @GetMapping("/{transactionId}")
     @Operation(summary = SwaggerUiConstants.GET_TRANSACTION_SUMMARY, description = SwaggerUiConstants.GET_TRANSACTION_DESCRIPTION)
-    public ResponseEntity<ApiResponse<TransactionResponse>> getTransaction(@PathVariable String transactionId) {
+    public ResponseEntity<ApiResponse<TransactionResponse>> getTransaction(@PathVariable Long transactionId) {
         Transaction transaction = transactionOutPutPort.findById(transactionId)
                 .orElseThrow(() -> new RuntimeException("Transaction not found"));
         return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(transaction), "Transaction retrieved successfully"));
