@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import xy.walletmanagementsystem.domain.enums.KycVerificationStatus;
+import xy.walletmanagementsystem.domain.enums.KycStatus;
 
 import java.time.LocalDateTime;
 
@@ -17,6 +17,6 @@ public class KycResponse {
     private String userId;
     private String bvn;
     private String nin;
-    private KycVerificationStatus status;
+    private KycStatus status;
     private LocalDateTime createdDate;
 }
