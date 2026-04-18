@@ -1,5 +1,6 @@
 package xy.walletmanagementsystem.infrastructure.input.rest.mapper;
 
+import jakarta.validation.Valid;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import xy.walletmanagementsystem.domain.model.AuthResponse;
@@ -8,6 +9,8 @@ import xy.walletmanagementsystem.domain.model.Loan;
 import xy.walletmanagementsystem.domain.model.Transaction;
 import xy.walletmanagementsystem.domain.model.User;
 import xy.walletmanagementsystem.domain.model.Wallet;
+import xy.walletmanagementsystem.infrastructure.input.rest.data.request.SignupRequest;
+import xy.walletmanagementsystem.infrastructure.input.rest.data.request.UpdateUserRequest;
 import xy.walletmanagementsystem.infrastructure.input.rest.data.response.AuthenticationResponse;
 import xy.walletmanagementsystem.infrastructure.input.rest.data.response.KycResponse;
 import xy.walletmanagementsystem.infrastructure.input.rest.data.response.LoanResponse;
@@ -29,4 +32,8 @@ public interface RestMapper {
     KycResponse toResponse(Kyc kyc);
 
     AuthenticationResponse toResponse(AuthResponse authResponse);
+
+    User toUser(@Valid SignupRequest request);
+
+    User toUpdateUser(UpdateUserRequest updateUserRequest);
 }
