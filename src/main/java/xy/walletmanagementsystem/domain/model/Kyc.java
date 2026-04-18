@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class Kyc {
-    private String id;
-    private String userId;
+    private Long id;
+    private Long userId;
     private String bvn;
     private String nin;
     private KycVerificationStatus status;
