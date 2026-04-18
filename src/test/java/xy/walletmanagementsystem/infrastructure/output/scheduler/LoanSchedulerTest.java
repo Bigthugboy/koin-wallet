@@ -42,16 +42,16 @@ class LoanSchedulerTest {
     void sendRepaymentReminders_shouldNotifyForLoansDueInThreeDays() {
         LocalDateTime now = LocalDateTime.now();
         Loan dueSoon = Loan.builder()
-                .loanId("loan-1")
-                .userId("user-1")
+                .loanId(1L)
+                .userId(1L)
                 .status(LoanStatus.DISBURSED)
                 .durationInDays(10)
                 .dateDisbursed(now.minusDays(7))
                 .dateCreated(now.minusDays(8))
                 .build();
         Loan notDueSoon = Loan.builder()
-                .loanId("loan-2")
-                .userId("user-2")
+                .loanId(1L)
+                .userId(1L)
                 .status(LoanStatus.DISBURSED)
                 .durationInDays(10)
                 .dateDisbursed(now.minusDays(2))
@@ -59,8 +59,8 @@ class LoanSchedulerTest {
                 .build();
 
         when(loanOutPutPort.findAll()).thenReturn(List.of(dueSoon, notDueSoon));
-        when(userOutPutPort.findById("user-1"))
-                .thenReturn(Optional.of(User.builder().id("user-1").email("john@example.com").build()));
+        when(userOutPutPort.findById(1L))
+                .thenReturn(Optional.of(User.builder().id(1L).email("john@example.com").build()));
 
         loanScheduler.sendRepaymentReminders();
 
@@ -72,16 +72,16 @@ class LoanSchedulerTest {
     void markOverdueLoans_shouldSetStatusToDefaultedWhenPastDue() {
         LocalDateTime now = LocalDateTime.now();
         Loan overdueLoan = Loan.builder()
-                .loanId("loan-1")
-                .userId("user-1")
+                .loanId(1L)
+                .userId(1L)
                 .status(LoanStatus.DISBURSED)
                 .durationInDays(5)
                 .dateDisbursed(now.minusDays(6))
                 .dateCreated(now.minusDays(7))
                 .build();
         Loan activeLoan = Loan.builder()
-                .loanId("loan-2")
-                .userId("user-2")
+                .loanId(1L)
+                .userId(1L)
                 .status(LoanStatus.DISBURSED)
                 .durationInDays(10)
                 .dateDisbursed(now.minusDays(3))
@@ -96,6 +96,6 @@ class LoanSchedulerTest {
         ArgumentCaptor<Loan> loanCaptor = ArgumentCaptor.forClass(Loan.class);
         verify(loanOutPutPort).save(loanCaptor.capture());
         assertEquals(LoanStatus.DEFAULTED, loanCaptor.getValue().getStatus());
-        assertEquals("loan-1", loanCaptor.getValue().getLoanId());
+        assertEquals(1L, loanCaptor.getValue().getLoanId());
     }
 }
