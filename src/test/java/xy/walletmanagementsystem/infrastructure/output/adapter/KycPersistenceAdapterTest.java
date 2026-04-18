@@ -29,8 +29,8 @@ class KycPersistenceAdapterTest {
 
     @Test
     void save_shouldPersistMappedEntity() {
-        Kyc kyc = Kyc.builder().id("k1").build();
-        KycEntity entity = KycEntity.builder().id("k1").build();
+        Kyc kyc = Kyc.builder().id(1L).build();
+        KycEntity entity = KycEntity.builder().id(1L).build();
         when(kycMapper.toEntity(kyc)).thenReturn(entity);
         when(kycRepository.save(entity)).thenReturn(entity);
         when(kycMapper.toDomain(entity)).thenReturn(kyc);
@@ -41,20 +41,20 @@ class KycPersistenceAdapterTest {
 
     @Test
     void findByUserId_shouldReturnOptionalDomain() {
-        KycEntity entity = KycEntity.builder().id("k1").userId("u1").build();
-        when(kycRepository.findByUserId("u1")).thenReturn(Optional.of(entity));
-        when(kycMapper.toDomain(entity)).thenReturn(Kyc.builder().id("k1").build());
+        KycEntity entity = KycEntity.builder().id(1L).userId(1L).build();
+        when(kycRepository.findByUserId(1L)).thenReturn(Optional.of(entity));
+        when(kycMapper.toDomain(entity)).thenReturn(Kyc.builder().id(1L).build());
 
-        assertTrue(adapter.findByUserId("u1").isPresent());
+        assertTrue(adapter.findByUserId(1L).isPresent());
     }
 
     @Test
     void findByIdAndUserId_shouldReturnDomain() {
-        KycEntity entity = KycEntity.builder().id("k1").userId("u1").build();
-        when(kycRepository.findByIdAndUserId("k1", "u1")).thenReturn(Optional.of(entity));
-        when(kycMapper.toDomain(entity)).thenReturn(Kyc.builder().id("k1").build());
+        KycEntity entity = KycEntity.builder().id(1L).userId(1L).build();
+        when(kycRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(entity));
+        when(kycMapper.toDomain(entity)).thenReturn(Kyc.builder().id(1L).build());
 
-        Kyc result = adapter.findByIdAndUserId("k1", "u1");
-        assertEquals("k1", result.getId());
+        Kyc result = adapter.findByIdAndUserId(1L, 1L);
+        assertEquals(1L, result.getId());
     }
 }
