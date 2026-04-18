@@ -23,7 +23,7 @@ public class UserPersistenceAdapter implements UserOutPutPort {
     }
 
     @Override
-    public Optional<User> findById(String userId) {
+    public Optional<User> findById(Long userId) {
         return userRepository.findById(userId)
                 .map(userMapper::toDomain);
     }
