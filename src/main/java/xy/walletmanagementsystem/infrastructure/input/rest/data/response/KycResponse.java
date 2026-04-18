@@ -18,5 +18,5 @@ public class KycResponse {
     private String bvn;
     private String nin;
     private KycStatus status;
-    private LocalDateTime createdDate;
+    private LocalDateTime dateCreated;
 }
