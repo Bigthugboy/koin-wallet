@@ -1,6 +1,7 @@
 package xy.walletmanagementsystem.infrastructure.output.adapter;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import xy.walletmanagementsystem.applicationPort.output.TokenBlacklistOutPutPort;
 
