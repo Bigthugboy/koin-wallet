@@ -1,6 +1,7 @@
 package xy.walletmanagementsystem.domain.service;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import xy.walletmanagementsystem.applicationPort.input.UserUseCase;
 import xy.walletmanagementsystem.applicationPort.output.UserOutPutPort;
@@ -9,6 +10,7 @@ import xy.walletmanagementsystem.domain.model.User;
 import xy.walletmanagementsystem.infrastructure.input.rest.message.ErrorMessages;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.logging.ErrorManager;
 
 @Service
@@ -35,5 +37,14 @@ public class UserService implements UserUseCase {
         }
         existingUser.setUpdatedDate(LocalDateTime.now());
         return userOutPutPort.save(existingUser);
+    }
+
+    @Override
+    public Optional<User> getUserDetails(String userId) throws WalletManagementException {
+        if (StringUtils.isBlank(userId)){
+            throw new WalletManagementException(ErrorMessages.USER_ID_IS_REQUIRED);
+        }
+        return userOutPutPort.findById(userId);
+
     }
 }
