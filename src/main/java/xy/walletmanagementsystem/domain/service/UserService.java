@@ -35,7 +35,7 @@ public class UserService implements UserUseCase {
         if (userDetails.getPhoneNumber() != null) {
             existingUser.setPhoneNumber(userDetails.getPhoneNumber());
         }
-        existingUser.setUpdatedDate(LocalDateTime.now());
+        existingUser.setDateUpdate(LocalDateTime.now());
         return userOutPutPort.save(existingUser);
     }
 
