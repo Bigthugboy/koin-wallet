@@ -6,7 +6,7 @@ import xy.walletmanagementsystem.infrastructure.output.entities.TransactionEntit
 import java.util.List;
 import java.util.Optional;
 
-public interface TransactionRepository extends JpaRepository<TransactionEntity, String> {
+public interface TransactionRepository extends JpaRepository<TransactionEntity, Long> {
     List<TransactionEntity> findByUserId(String userId);
     Optional<TransactionEntity> findByReferenceNumber(String referenceNumber);
 }
