@@ -21,6 +21,6 @@ public class Wallet {
     private BigDecimal balance;
     private String currency;
     private WalletStatus status;
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedDate;
+    private LocalDateTime dateCreated;
+    private LocalDateTime dateUpdate;
 }
