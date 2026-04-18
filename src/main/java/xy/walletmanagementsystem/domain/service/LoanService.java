@@ -6,7 +6,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import xy.walletmanagementsystem.applicationPort.input.LoanUseCase;
 import xy.walletmanagementsystem.applicationPort.output.LoanOutPutPort;
+import xy.walletmanagementsystem.applicationPort.output.NotificationOutPutPort;
 import xy.walletmanagementsystem.applicationPort.output.TransactionOutPutPort;
+import xy.walletmanagementsystem.applicationPort.output.UserOutPutPort;
 import xy.walletmanagementsystem.applicationPort.output.WalletOutPutPort;
 import xy.walletmanagementsystem.domain.enums.LoanStatus;
 import xy.walletmanagementsystem.domain.enums.TransactionStatus;
@@ -28,6 +30,8 @@ public class LoanService implements LoanUseCase {
     private final LoanOutPutPort loanOutPutPort;
     private final WalletOutPutPort walletOutPutPort;
     private final TransactionOutPutPort transactionOutPutPort;
+    private final UserOutPutPort userOutPutPort;
+    private final NotificationOutPutPort notificationOutPutPort;
 
     @Override
     @Transactional
@@ -42,7 +46,9 @@ public class LoanService implements LoanUseCase {
         if (amount.compareTo(maxLoanAmount) > 0) {
             throw new WalletManagementException(ErrorMessages.LOAN_AMOUNT_EXCEEDS_MAXIMUM_ALLOWED);
         }
-        return loanOutPutPort.save(buildLoanDetails(userId, amount, durationInDays));
+        Loan loan = loanOutPutPort.save(buildLoanDetails(userId, amount, durationInDays));
+        notifyLoanUser(userId, "Your loan application has been submitted and is pending approval.");
+        return loan;
     }
 
 
@@ -55,7 +61,9 @@ public class LoanService implements LoanUseCase {
         }
         loan.setStatus(LoanStatus.APPROVED);
         loan.setUpdatedDate(LocalDateTime.now());
-        return loanOutPutPort.save(loan);
+        Loan savedLoan = loanOutPutPort.save(loan);
+        notifyLoanUser(savedLoan.getUserId(), "Your loan has been approved.");
+        return savedLoan;
     }
 
     @Override
@@ -82,6 +90,7 @@ public class LoanService implements LoanUseCase {
 
         // Log transaction
         saveLoanTransaction(loan, wallet);
+        notifyLoanUser(savedLoan.getUserId(), "Your loan has been disbursed to your wallet.");
         return savedLoan;
     }
 
@@ -118,6 +127,7 @@ public class LoanService implements LoanUseCase {
 
         // Log transaction
          saveLoanRepaymentTransaction(amount, loan, wallet);
+        notifyLoanUser(loan.getUserId(), "Loan repayment of " + amount + " was successful.");
 
     }
 
@@ -216,6 +226,11 @@ public class LoanService implements LoanUseCase {
         wallet.setBalance(wallet.getBalance().add(loan.getAmount()));
         wallet.setUpdatedDate(LocalDateTime.now());
         walletOutPutPort.save(wallet);
+    }
+
+    private void notifyLoanUser(String userId, String message) {
+        userOutPutPort.findById(userId)
+                .ifPresent(user -> notificationOutPutPort.sendLoanNotification(user.getEmail(), message));
     }
 
 
