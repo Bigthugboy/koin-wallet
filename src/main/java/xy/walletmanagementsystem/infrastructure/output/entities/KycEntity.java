@@ -34,6 +34,6 @@ public class KycEntity {
     @Enumerated(EnumType.STRING)
     private KycStatus status;
 
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedDate;
+    private LocalDateTime dateCreated;
+    private LocalDateTime dateUpdate;
 }
