@@ -30,8 +30,8 @@ class LoanPersistenceAdapterTest {
 
     @Test
     void save_shouldPersistMappedEntity() {
-        Loan loan = Loan.builder().loanId("l1").build();
-        LoanEntity entity = LoanEntity.builder().id("l1").build();
+        Loan loan = Loan.builder().loanId(1L).build();
+        LoanEntity entity = LoanEntity.builder().id(1L).build();
         when(loanMapper.toEntity(loan)).thenReturn(entity);
         when(loanRepository.save(entity)).thenReturn(entity);
         when(loanMapper.toDomain(entity)).thenReturn(loan);
@@ -42,18 +42,18 @@ class LoanPersistenceAdapterTest {
 
     @Test
     void findById_shouldReturnDomainOptional() {
-        LoanEntity entity = LoanEntity.builder().id("l1").build();
-        when(loanRepository.findById("l1")).thenReturn(Optional.of(entity));
-        when(loanMapper.toDomain(entity)).thenReturn(Loan.builder().loanId("l1").build());
+        LoanEntity entity = LoanEntity.builder().id(1L).build();
+        when(loanRepository.findById(1L)).thenReturn(Optional.of(entity));
+        when(loanMapper.toDomain(entity)).thenReturn(Loan.builder().loanId(1L).build());
 
-        assertTrue(adapter.findById("l1").isPresent());
+        assertTrue(adapter.findById(1L).isPresent());
     }
 
     @Test
     void findAll_shouldReturnMappedList() {
-        LoanEntity entity = LoanEntity.builder().id("l1").build();
+        LoanEntity entity = LoanEntity.builder().id(1L).build();
         when(loanRepository.findAll()).thenReturn(List.of(entity));
-        when(loanMapper.toDomain(entity)).thenReturn(Loan.builder().loanId("l1").build());
+        when(loanMapper.toDomain(entity)).thenReturn(Loan.builder().loanId(1L).build());
 
         assertEquals(1, adapter.findAll().size());
     }
