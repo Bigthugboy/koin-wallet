@@ -5,6 +5,6 @@ import xy.walletmanagementsystem.infrastructure.output.entities.WalletEntity;
 
 import java.util.Optional;
 
-public interface WalletRepository extends JpaRepository<WalletEntity, String> {
+public interface WalletRepository extends JpaRepository<WalletEntity, Long> {
     Optional<WalletEntity> findByUserId(String userId);
 }
