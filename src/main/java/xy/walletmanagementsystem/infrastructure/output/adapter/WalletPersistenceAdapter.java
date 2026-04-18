@@ -24,13 +24,13 @@ public class WalletPersistenceAdapter implements WalletOutPutPort {
     }
 
     @Override
-    public Optional<Wallet> findByUserId(String userId) {
+    public Optional<Wallet> findByUserId(Long userId) {
         return walletRepository.findByUserId(userId)
                 .map(walletMapper::toDomain);
     }
 
     @Override
-    public Optional<Wallet> findById(String walletId) {
+    public Optional<Wallet> findById(Long walletId) {
         return walletRepository.findById(walletId)
                 .map(walletMapper::toDomain);
     }
