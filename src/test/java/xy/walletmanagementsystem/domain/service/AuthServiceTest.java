@@ -94,7 +94,7 @@ class AuthServiceTest {
         assertEquals(AccountStatus.ACTIVE, persisted.getStatus());
         assertEquals(UserRole.USER, persisted.getRole());
         assertTrue(persisted.isEmailVerified());
-        assertNotNull(saved.getCreatedDate());
+        assertNotNull(saved.getDateCreated());
         verify(emailOutPutPort).sendEmail(any());
     }
 
