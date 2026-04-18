@@ -21,5 +21,6 @@ public class LoanResponse {
     private Integer durationInDays;
     private LoanStatus status;
     private String repaymentSchedule;
-    private LocalDateTime createdDate;
+    private LocalDateTime dateDisbursed;
+    private LocalDateTime dateCreated;
 }
