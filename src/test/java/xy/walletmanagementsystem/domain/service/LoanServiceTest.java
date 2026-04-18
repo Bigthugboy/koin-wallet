@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -109,6 +110,7 @@ class LoanServiceTest {
         Loan disbursed = loanService.disburseLoan("loan-1");
 
         assertEquals(LoanStatus.DISBURSED, disbursed.getStatus());
+        assertNotNull(disbursed.getDateDisbursed());
         ArgumentCaptor<Transaction> txCaptor = ArgumentCaptor.forClass(Transaction.class);
         verify(transactionOutPutPort).save(txCaptor.capture());
         assertEquals(TransactionType.LOAN_DISBURSEMENT, txCaptor.getValue().getType());
