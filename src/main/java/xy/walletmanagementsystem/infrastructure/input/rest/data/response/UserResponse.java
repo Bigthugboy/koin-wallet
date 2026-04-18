@@ -20,5 +20,5 @@ public class UserResponse {
     private String phoneNumber;
     private AccountStatus status;
     private UserRole role;
-    private LocalDateTime createdDate;
+    private LocalDateTime dateCreated;
 }
