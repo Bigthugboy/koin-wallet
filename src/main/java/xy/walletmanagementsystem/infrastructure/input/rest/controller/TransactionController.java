@@ -10,50 +10,41 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import xy.walletmanagementsystem.applicationPort.output.TransactionOutPutPort;
+import xy.walletmanagementsystem.domain.messages.UrlConstant;
 import xy.walletmanagementsystem.domain.model.Transaction;
+import xy.walletmanagementsystem.infrastructure.input.rest.message.SwaggerUiConstants;
 import xy.walletmanagementsystem.infrastructure.input.rest.data.response.ApiResponse;
 import xy.walletmanagementsystem.infrastructure.input.rest.data.response.TransactionResponse;
+import xy.walletmanagementsystem.infrastructure.input.rest.mapper.RestMapper;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/v1/transactions")
+@RequestMapping(UrlConstant.TRANSACTION_URL)
 @RequiredArgsConstructor
-@Tag(name = "Transaction History", description = "Endpoints for listing and fetching transactions")
-@SecurityRequirement(name = "bearerAuth")
+@Tag(name = SwaggerUiConstants.TRANSACTION_TAG_NAME, description = SwaggerUiConstants.TRANSACTION_TAG_DESCRIPTION)
 public class TransactionController {
 
     private final TransactionOutPutPort transactionOutPutPort;
+    private final RestMapper restMapper;
 
     @GetMapping
-    @Operation(summary = "List all transactions (Admin view simulation)")
+    @Operation(summary = SwaggerUiConstants.GET_ALL_TRANSACTIONS_SUMMARY, description = SwaggerUiConstants.GET_ALL_TRANSACTIONS_DESCRIPTION)
     public ResponseEntity<ApiResponse<List<TransactionResponse>>> getAllTransactions() {
         List<Transaction> transactions = transactionOutPutPort.findAll();
         List<TransactionResponse> response = transactions.stream()
-                .map(this::mapToResponse)
+                .map(restMapper::toResponse)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponse.success(response, "All transactions retrieved successfully"));
     }
 
     @GetMapping("/{transactionId}")
-    @Operation(summary = "Fetch a single transaction by ID")
+    @Operation(summary = SwaggerUiConstants.GET_TRANSACTION_SUMMARY, description = SwaggerUiConstants.GET_TRANSACTION_DESCRIPTION)
     public ResponseEntity<ApiResponse<TransactionResponse>> getTransaction(@PathVariable String transactionId) {
         Transaction transaction = transactionOutPutPort.findById(transactionId)
                 .orElseThrow(() -> new RuntimeException("Transaction not found"));
-        return ResponseEntity.ok(ApiResponse.success(mapToResponse(transaction), "Transaction retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(transaction), "Transaction retrieved successfully"));
     }
 
-    private TransactionResponse mapToResponse(Transaction t) {
-        return TransactionResponse.builder()
-                .transactionId(t.getTransactionId())
-                .userId(t.getUserId())
-                .walletId(t.getWalletId())
-                .type(t.getType())
-                .amount(t.getAmount())
-                .status(t.getStatus())
-                .referenceNumber(t.getReferenceNumber())
-                .timestamp(t.getTimestamp())
-                .build();
-    }
 }
