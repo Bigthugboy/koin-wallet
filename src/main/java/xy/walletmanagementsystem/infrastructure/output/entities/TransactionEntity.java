@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 import xy.walletmanagementsystem.domain.enums.TransactionStatus;
 import xy.walletmanagementsystem.domain.enums.TransactionType;
 
@@ -21,7 +22,7 @@ import java.time.LocalDateTime;
 @Builder
 public class TransactionEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @UuidGenerator
     private String id;
 
     @Column(nullable = false)
