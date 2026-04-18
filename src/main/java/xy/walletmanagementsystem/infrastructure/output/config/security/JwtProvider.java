@@ -40,7 +40,7 @@ public class JwtProvider {
     public String generateAccessToken(User user) {
         Date issuedAt = new Date();
         return Jwts.builder()
-                .subject(user.getId())
+                .subject(String.valueOf(user.getId()))
                 .claims(buildUserClaims(user))
                 .issuedAt(issuedAt)
                 .expiration(new Date(issuedAt.getTime() + accessTokenExpiration))
@@ -51,7 +51,7 @@ public class JwtProvider {
     public String generateRefreshToken(User user) {
         Date issuedAt = new Date();
         return Jwts.builder()
-                .subject(user.getId())
+                .subject(String.valueOf(user.getId()))
                 .claims(buildUserClaims(user))
                 .issuedAt(issuedAt)
                 .expiration(new Date(issuedAt.getTime() + refreshTokenExpiration))
@@ -59,8 +59,9 @@ public class JwtProvider {
                 .compact();
     }
 
-    public String getUserIdFromToken(String token) {
-        return getClaimFromToken(token, Claims::getSubject);
+    public Long getUserIdFromToken(String token) {
+        String subject = getClaimFromToken(token, Claims::getSubject);
+        return subject != null ? Long.valueOf(subject) : null;
     }
 
     public Date getExpirationFromToken(String token) {
