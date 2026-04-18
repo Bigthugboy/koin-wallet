@@ -10,6 +10,7 @@ import xy.walletmanagementsystem.applicationPort.output.WalletOutPutPort;
 import xy.walletmanagementsystem.domain.enums.TransactionStatus;
 import xy.walletmanagementsystem.domain.enums.TransactionType;
 import xy.walletmanagementsystem.domain.enums.WalletStatus;
+import xy.walletmanagementsystem.domain.exception.IdempotencyException;
 import xy.walletmanagementsystem.domain.exception.WalletManagementException;
 import xy.walletmanagementsystem.domain.model.Transaction;
 import xy.walletmanagementsystem.domain.model.Wallet;
@@ -47,6 +48,9 @@ public class WalletService implements WalletUseCase {
         }
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new WalletManagementException(ErrorMessages.AMOUNT_MUST_BE_GREATER_THAN_ZERO);
+        }
+        if (transactionOutPutPort.findByReference(reference).isPresent()) {
+            throw new IdempotencyException("Transaction with reference " + reference + " already processed");
         }
         Wallet savedWallet = getWalletAndUpdateWallet(userId, amount);
         transactionOutPutPort.save(buildFundWalletTransaction(userId, amount, reference, savedWallet));
