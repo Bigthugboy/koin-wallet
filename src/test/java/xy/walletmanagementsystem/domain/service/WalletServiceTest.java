@@ -37,23 +37,23 @@ class WalletServiceTest {
 
     @Test
     void createWallet_shouldFailWhenUserIdBlank() {
-        assertThrows(WalletManagementException.class, () -> walletService.createWallet(""));
+        assertThrows(WalletManagementException.class, () -> walletService.createWallet(null));
     }
 
     @Test
     void createWallet_shouldFailWhenWalletExists() {
-        when(walletOutPutPort.findByUserId("user-1")).thenReturn(Optional.of(Wallet.builder().build()));
-        assertThrows(WalletManagementException.class, () -> walletService.createWallet("user-1"));
+        when(walletOutPutPort.findByUserId(1L)).thenReturn(Optional.of(Wallet.builder().build()));
+        assertThrows(WalletManagementException.class, () -> walletService.createWallet(1L));
     }
 
     @Test
     void createWallet_shouldPersistDefaultWallet() throws Exception {
-        when(walletOutPutPort.findByUserId("user-1")).thenReturn(Optional.empty());
+        when(walletOutPutPort.findByUserId(1L)).thenReturn(Optional.empty());
         when(walletOutPutPort.save(any(Wallet.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Wallet wallet = walletService.createWallet("user-1");
+        Wallet wallet = walletService.createWallet(1L);
 
-        assertEquals("user-1", wallet.getUserId());
+        assertEquals(1L, wallet.getUserId());
         assertEquals(BigDecimal.ZERO, wallet.getBalance());
         assertEquals("NGN", wallet.getCurrency());
         assertEquals(WalletStatus.ACTIVE, wallet.getStatus());
@@ -62,14 +62,14 @@ class WalletServiceTest {
     @Test
     void fundWallet_shouldUpdateBalanceAndCreateTransaction() throws Exception {
         Wallet wallet = Wallet.builder()
-                .walletId("wallet-1")
-                .userId("user-1")
+                .walletId(1L)
+                .userId(1L)
                 .balance(new BigDecimal("100.00"))
                 .build();
-        when(walletOutPutPort.findByUserId("user-1")).thenReturn(Optional.of(wallet));
+        when(walletOutPutPort.findByUserId(1L)).thenReturn(Optional.of(wallet));
         when(walletOutPutPort.save(any(Wallet.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        walletService.fundWallet("user-1", new BigDecimal("50.00"), "ref-1");
+        walletService.fundWallet(1L, new BigDecimal("50.00"), "ref-1");
 
         ArgumentCaptor<Transaction> txCaptor = ArgumentCaptor.forClass(Transaction.class);
         verify(transactionOutPutPort).save(txCaptor.capture());
@@ -80,24 +80,24 @@ class WalletServiceTest {
     @Test
     void fundWallet_shouldRejectInvalidAmount() {
         assertThrows(WalletManagementException.class,
-                () -> walletService.fundWallet("user-1", BigDecimal.ZERO, "ref-1"));
+                () -> walletService.fundWallet(1L, BigDecimal.ZERO, "ref-1"));
     }
 
     @Test
     void getWalletBalance_shouldReturnWallet() throws Exception {
-        Wallet wallet = Wallet.builder().userId("user-1").balance(BigDecimal.TEN).build();
-        when(walletOutPutPort.findByUserId("user-1")).thenReturn(Optional.of(wallet));
+        Wallet wallet = Wallet.builder().userId(1L).balance(BigDecimal.TEN).build();
+        when(walletOutPutPort.findByUserId(1L)).thenReturn(Optional.of(wallet));
 
-        Wallet result = walletService.getWalletBalance("user-1");
+        Wallet result = walletService.getWalletBalance(1L);
         assertEquals(BigDecimal.TEN, result.getBalance());
     }
 
     @Test
     void getTransactionHistory_shouldReturnTransactions() throws Exception {
-        List<Transaction> transactions = List.of(Transaction.builder().transactionId("tx-1").build());
-        when(transactionOutPutPort.findByUserId("user-1")).thenReturn(transactions);
+        List<Transaction> transactions = List.of(Transaction.builder().transactionId(1L).build());
+        when(transactionOutPutPort.findByUserId(1L)).thenReturn(transactions);
 
-        List<Transaction> result = walletService.getTransactionHistory("user-1");
+        List<Transaction> result = walletService.getTransactionHistory(1L);
         assertEquals(1, result.size());
     }
 }
