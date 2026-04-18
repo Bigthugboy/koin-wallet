@@ -70,8 +70,8 @@ public class AuthController {
 
     @PostMapping("/resend-otp")
     @Operation(summary = SwaggerUiConstants.RESEND_OTP_SUMMARY, description = SwaggerUiConstants.RESEND_OTP_DESCRIPTION)
-    public ResponseEntity<ApiResponse<String>> resendOtp(@RequestParam String email, @RequestParam OtpType type) throws WalletManagementException {
-        otpUseCase.resendOtp(email, type);
+    public ResponseEntity<ApiResponse<String>> resendOtp(@RequestParam String email) throws WalletManagementException {
+        otpUseCase.resendOtp(email, OtpType.RESEND_OTP);
         return ResponseEntity.ok(ApiResponse.ok("OTP resent successfully"));
     }
 
