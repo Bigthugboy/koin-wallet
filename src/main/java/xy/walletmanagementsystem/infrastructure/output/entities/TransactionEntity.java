@@ -22,8 +22,8 @@ import java.time.LocalDateTime;
 @Builder
 public class TransactionEntity {
     @Id
-    @UuidGenerator
-    private String id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private Long id;
 
     @Column(nullable = false)
     private String userId;
