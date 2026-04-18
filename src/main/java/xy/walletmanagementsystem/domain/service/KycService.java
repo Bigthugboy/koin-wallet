@@ -24,7 +24,7 @@ public class KycService implements KycUseCase {
     private final UserOutPutPort userOutPutPort;
 
     @Override
-    public Kyc submitKyc(String userId, String bvn, String nin) throws WalletManagementException {
+    public Kyc submitKyc(Long userId, String bvn, String nin) throws WalletManagementException {
         validateHasBvnOrNin(bvn, nin);
         if (userOutPutPort.findById(userId).isEmpty()) {
             throw new WalletManagementException(ErrorMessages.USER_NOT_FOUND);
@@ -39,20 +39,20 @@ public class KycService implements KycUseCase {
     }
 
     @Override
-    public Kyc getKycDetails(String userId) throws WalletManagementException {
+    public Kyc getKycDetails(Long userId) throws WalletManagementException {
         return kycOutPutPort.findByUserId(userId)
                 .orElseThrow(() -> new WalletManagementException(ErrorMessages.KYC_NOT_FOUND));
     }
 
     @Override
-    public Kyc updateVerificationStatus(String kycId, String status) throws WalletManagementException {
+    public Kyc updateVerificationStatus(Long kycId, String status) throws WalletManagementException {
         Kyc kyc = kycOutPutPort.findById(kycId).orElseThrow(() -> new WalletManagementException(ErrorMessages.KYC_NOT_FOUND));
         kyc.setStatus(KycVerificationStatus.valueOf(status));
         kyc.setDateUpdate(LocalDateTime.now());
         return kycOutPutPort.save(kyc);
     }
 
-    public void verifyKyc(String id, String ownerId) throws WalletManagementException{
+    public void verifyKyc(Long id, Long ownerId) throws WalletManagementException{
         validateIdentifiers(id, ownerId);
         Kyc kyc = getKycDetails(id, ownerId);
         log.info(
@@ -69,18 +69,18 @@ public class KycService implements KycUseCase {
                 approvedKyc.getStatus());
     }
 
-    private void validateIdentifiers(String id, String userId) throws WalletManagementException {
-        if (StringUtils.isBlank(id)) {
+    private void validateIdentifiers(Long id, Long userId) throws WalletManagementException {
+        if (id == null) {
             throw new WalletManagementException(ErrorMessages.KYC_ID_REQUIRED);
         }
 
-        if (StringUtils.isBlank(userId)) {
+        if (userId == null) {
             throw new WalletManagementException(ErrorMessages.USER_ID_IS_REQUIRED);
         }
     }
 
-    private Kyc getKycDetails(String id, String ownerId) throws WalletManagementException {
-        Kyc kyc = kycOutPutPort.findByIdAndUserId(id.trim(), ownerId.trim());
+    private Kyc getKycDetails(Long id, Long ownerId) throws WalletManagementException {
+        Kyc kyc = kycOutPutPort.findByIdAndUserId(id, ownerId);
         if (kyc == null) {
             throw new WalletManagementException(ErrorMessages.KYC_DETAILS_NOT_FOUND);
         }
@@ -96,7 +96,7 @@ public class KycService implements KycUseCase {
         }
     }
 
-    public Kyc approveKyc(String id, String ownerId, String reviewedBy)
+    public Kyc approveKyc(Long id, Long ownerId, String reviewedBy)
             throws WalletManagementException {
 
         Kyc kyc = getKycDetails(id, ownerId);
@@ -110,7 +110,7 @@ public class KycService implements KycUseCase {
         return kycOutPutPort.save(kyc);
     }
 
-    public Kyc rejectKyc(String id, String ownerId, String reviewedBy, String reason)
+    public Kyc rejectKyc(Long id, Long ownerId, String reviewedBy, String reason)
             throws WalletManagementException {
 
         if (StringUtils.isBlank(reason)) {
@@ -141,7 +141,7 @@ public class KycService implements KycUseCase {
 
     }
 
-    private static Kyc buildKycDetails(String userId, String bvn, String nin) {
+    private static Kyc buildKycDetails(Long userId, String bvn, String nin) {
         return Kyc.builder()
                 .userId(userId)
                 .bvn(bvn)
