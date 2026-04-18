@@ -37,7 +37,7 @@ public class OtpService implements OtpUseCase {
                 .otp(otp)
                 .type(type)
                 .expiryDate(LocalDateTime.now().plusMinutes(10))
-                .createdDate(LocalDateTime.now())
+                .dateCreated(LocalDateTime.now())
                 .build();
     }
 
@@ -77,6 +77,7 @@ public class OtpService implements OtpUseCase {
             case FORGOT_PASSWORD -> "Password Reset OTP";
             case REGISTRATION -> "Registration OTP";
             case CHANGE_EMAIL -> "Email Change OTP";
+            case RESEND_OTP -> "Resend OTP";
             default -> "OTP Code";
         };
         String body = "Your OTP is " + otpDetails.getOtp() + ". It expires in 10 minutes.";
