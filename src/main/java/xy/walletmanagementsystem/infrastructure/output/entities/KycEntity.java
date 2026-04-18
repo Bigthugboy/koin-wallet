@@ -20,8 +20,8 @@ import java.time.LocalDateTime;
 @Builder
 public class KycEntity {
     @Id
-    @UuidGenerator
-    private String id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private Long id;
 
     @Column(nullable = false, unique = true)
     private String userId;
