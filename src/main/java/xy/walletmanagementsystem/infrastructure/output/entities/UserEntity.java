@@ -41,6 +41,9 @@ public class UserEntity {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
+    @Column(nullable = false)
+    private boolean emailVerified;
+
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
 }
