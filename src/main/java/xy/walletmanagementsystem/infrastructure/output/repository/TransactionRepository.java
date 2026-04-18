@@ -7,6 +7,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TransactionRepository extends JpaRepository<TransactionEntity, Long> {
-    List<TransactionEntity> findByUserId(String userId);
+    List<TransactionEntity> findByUserId(Long userId);
     Optional<TransactionEntity> findByReferenceNumber(String referenceNumber);
 }
