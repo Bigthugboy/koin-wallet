@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import xy.walletmanagementsystem.domain.enums.KycStatus;
-import xy.walletmanagementsystem.domain.enums.KycVerificationStatus;
 
 import java.time.LocalDateTime;
 
