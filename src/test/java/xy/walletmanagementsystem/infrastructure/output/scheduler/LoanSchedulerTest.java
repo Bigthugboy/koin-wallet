@@ -46,16 +46,16 @@ class LoanSchedulerTest {
                 .userId("user-1")
                 .status(LoanStatus.DISBURSED)
                 .durationInDays(10)
-                .updatedDate(now.minusDays(7))
-                .createdDate(now.minusDays(8))
+                .dateDisbursed(now.minusDays(7))
+                .dateCreated(now.minusDays(8))
                 .build();
         Loan notDueSoon = Loan.builder()
                 .loanId("loan-2")
                 .userId("user-2")
                 .status(LoanStatus.DISBURSED)
                 .durationInDays(10)
-                .updatedDate(now.minusDays(2))
-                .createdDate(now.minusDays(2))
+                .dateDisbursed(now.minusDays(2))
+                .dateCreated(now.minusDays(2))
                 .build();
 
         when(loanOutPutPort.findAll()).thenReturn(List.of(dueSoon, notDueSoon));
@@ -76,16 +76,16 @@ class LoanSchedulerTest {
                 .userId("user-1")
                 .status(LoanStatus.DISBURSED)
                 .durationInDays(5)
-                .updatedDate(now.minusDays(6))
-                .createdDate(now.minusDays(7))
+                .dateDisbursed(now.minusDays(6))
+                .dateCreated(now.minusDays(7))
                 .build();
         Loan activeLoan = Loan.builder()
                 .loanId("loan-2")
                 .userId("user-2")
                 .status(LoanStatus.DISBURSED)
                 .durationInDays(10)
-                .updatedDate(now.minusDays(3))
-                .createdDate(now.minusDays(3))
+                .dateDisbursed(now.minusDays(3))
+                .dateCreated(now.minusDays(3))
                 .build();
 
         when(loanOutPutPort.findAll()).thenReturn(List.of(overdueLoan, activeLoan));
