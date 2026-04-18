@@ -26,13 +26,13 @@ public class TransactionPersistenceAdapter implements TransactionOutPutPort {
     }
 
     @Override
-    public Optional<Transaction> findById(String transactionId) {
+    public Optional<Transaction> findById(Long transactionId) {
         return transactionRepository.findById(transactionId)
                 .map(transactionMapper::toDomain);
     }
 
     @Override
-    public List<Transaction> findByUserId(String userId) {
+    public List<Transaction> findByUserId(Long userId) {
         return transactionRepository.findByUserId(userId).stream()
                 .map(transactionMapper::toDomain)
                 .collect(Collectors.toList());
