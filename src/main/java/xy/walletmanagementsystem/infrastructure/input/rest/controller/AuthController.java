@@ -19,6 +19,7 @@ import xy.walletmanagementsystem.domain.exception.WalletManagementException;
 import xy.walletmanagementsystem.domain.messages.UrlConstant;
 import xy.walletmanagementsystem.domain.model.AuthResponse;
 import xy.walletmanagementsystem.domain.model.User;
+import xy.walletmanagementsystem.infrastructure.input.rest.data.response.UserResponse;
 import xy.walletmanagementsystem.infrastructure.input.rest.message.SwaggerUiConstants;
 import xy.walletmanagementsystem.infrastructure.input.rest.data.request.LoginRequest;
 import xy.walletmanagementsystem.infrastructure.input.rest.data.request.PasswordResetRequest;
@@ -40,11 +41,10 @@ public class AuthController {
 
     @PostMapping("/signup")
     @Operation(summary = SwaggerUiConstants.SIGNUP_SUMMARY, description = SwaggerUiConstants.SIGNUP_DESCRIPTION)
-    public ResponseEntity<ApiResponse<AuthenticationResponse>> signup(@Valid @RequestBody SignupRequest request) throws WalletManagementException {
+    public ResponseEntity<ApiResponse<UserResponse>> signup(@Valid @RequestBody SignupRequest request) throws WalletManagementException {
         User user = restMapper.toUser(request);
-        authUseCase.signup(user, request.getPassword());
-        AuthResponse loginResponse = authUseCase.login(request.getEmail(), request.getPassword());
-        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(loginResponse), "Registration successful"));
+        User savedUser = authUseCase.signup(user, request.getPassword());
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(savedUser), "Registration successful"));
     }
 
     @PostMapping("/login")
