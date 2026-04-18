@@ -25,7 +25,7 @@ public class UserService implements UserUseCase {
     }
 
     @Override
-    public User updateUserProfile(String userId, User userDetails) throws WalletManagementException {
+    public User updateUserProfile(Long userId, User userDetails) throws WalletManagementException {
         User existingUser = userOutPutPort.findById(userId)
                 .orElseThrow(() -> new WalletManagementException(ErrorMessages.USER_NOT_FOUND));
 
@@ -40,11 +40,10 @@ public class UserService implements UserUseCase {
     }
 
     @Override
-    public Optional<User> getUserDetails(String userId) throws WalletManagementException {
-        if (StringUtils.isBlank(userId)){
+    public Optional<User> getUserDetails(Long userId) throws WalletManagementException {
+        if (userId == null){
             throw new WalletManagementException(ErrorMessages.USER_ID_IS_REQUIRED);
         }
         return userOutPutPort.findById(userId);
-
     }
 }
