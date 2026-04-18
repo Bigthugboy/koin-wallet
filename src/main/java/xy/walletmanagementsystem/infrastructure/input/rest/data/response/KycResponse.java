@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class KycResponse {
-    private String id;
-    private String userId;
+    private Long id;
+    private Long userId;
     private String bvn;
     private String nin;
     private KycStatus status;
