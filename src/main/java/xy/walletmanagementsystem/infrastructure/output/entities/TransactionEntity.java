@@ -26,10 +26,10 @@ public class TransactionEntity {
     private Long id;
 
     @Column(nullable = false)
-    private String userId;
+    private Long userId;
 
     @Column(nullable = false)
-    private String walletId;
+    private Long walletId;
 
     @Enumerated(EnumType.STRING)
     private TransactionType type;
