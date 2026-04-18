@@ -37,7 +37,7 @@ class OtpServiceTest {
     void generateOtp_shouldPersistOtpWithExpiry() throws Exception {
         when(otpOutPutPort.save(any(OtpDetails.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        OtpDetails result = otpService.generateOtp("john@example.com", OtpType.FORGOT_PASSWORD);
+        OtpDetails result = otpService.generateOtp("john@example.com", OtpType.PASSWORD_RESET);
 
         assertNotNull(result.getOtp());
         assertEquals(6, result.getOtp().length());
@@ -50,15 +50,15 @@ class OtpServiceTest {
         OtpDetails details = OtpDetails.builder()
                 .email("john@example.com")
                 .otp("123456")
-                .type(OtpType.FORGOT_PASSWORD)
+                .type(OtpType.PASSWORD_RESET)
                 .expiryDate(LocalDateTime.now().minusMinutes(1))
                 .build();
-        when(otpOutPutPort.findByEmailAndType("john@example.com", OtpType.FORGOT_PASSWORD.name()))
+        when(otpOutPutPort.findByEmailAndType("john@example.com", OtpType.PASSWORD_RESET.name()))
                 .thenReturn(Optional.of(details));
 
         assertThrows(WalletManagementException.class,
-                () -> otpService.verifyOtp("john@example.com", "123456", OtpType.FORGOT_PASSWORD));
-        verify(otpOutPutPort).deleteByEmailAndType("john@example.com", OtpType.FORGOT_PASSWORD.name());
+                () -> otpService.verifyOtp("john@example.com", "123456", OtpType.PASSWORD_RESET));
+        verify(otpOutPutPort).deleteByEmailAndType("john@example.com", OtpType.PASSWORD_RESET.name());
     }
 
     @Test
@@ -66,14 +66,14 @@ class OtpServiceTest {
         OtpDetails details = OtpDetails.builder()
                 .email("john@example.com")
                 .otp("111111")
-                .type(OtpType.FORGOT_PASSWORD)
+                .type(OtpType.PASSWORD_RESET)
                 .expiryDate(LocalDateTime.now().plusMinutes(5))
                 .build();
-        when(otpOutPutPort.findByEmailAndType("john@example.com", OtpType.FORGOT_PASSWORD.name()))
+        when(otpOutPutPort.findByEmailAndType("john@example.com", OtpType.PASSWORD_RESET.name()))
                 .thenReturn(Optional.of(details));
 
         assertThrows(WalletManagementException.class,
-                () -> otpService.verifyOtp("john@example.com", "123456", OtpType.FORGOT_PASSWORD));
+                () -> otpService.verifyOtp("john@example.com", "123456", OtpType.PASSWORD_RESET));
     }
 
     @Test
@@ -81,25 +81,25 @@ class OtpServiceTest {
         OtpDetails details = OtpDetails.builder()
                 .email("john@example.com")
                 .otp("123456")
-                .type(OtpType.FORGOT_PASSWORD)
+                .type(OtpType.PASSWORD_RESET)
                 .expiryDate(LocalDateTime.now().plusMinutes(5))
                 .build();
-        when(otpOutPutPort.findByEmailAndType("john@example.com", OtpType.FORGOT_PASSWORD.name()))
+        when(otpOutPutPort.findByEmailAndType("john@example.com", OtpType.PASSWORD_RESET.name()))
                 .thenReturn(Optional.of(details));
 
-        boolean result = otpService.verifyOtp("john@example.com", "123456", OtpType.FORGOT_PASSWORD);
+        boolean result = otpService.verifyOtp("john@example.com", "123456", OtpType.PASSWORD_RESET);
 
         assertTrue(result);
-        verify(otpOutPutPort).deleteByEmailAndType("john@example.com", OtpType.FORGOT_PASSWORD.name());
+        verify(otpOutPutPort).deleteByEmailAndType("john@example.com", OtpType.PASSWORD_RESET.name());
     }
 
     @Test
     void resendOtp_shouldDeleteOldOtpThenGenerateNew() throws Exception {
         when(otpOutPutPort.save(any(OtpDetails.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        otpService.resendOtp("john@example.com", OtpType.FORGOT_PASSWORD);
+        otpService.resendOtp("john@example.com", OtpType.PASSWORD_RESET);
 
-        verify(otpOutPutPort).deleteByEmailAndType("john@example.com", OtpType.FORGOT_PASSWORD.name());
+        verify(otpOutPutPort).deleteByEmailAndType("john@example.com", OtpType.PASSWORD_RESET.name());
         verify(otpOutPutPort).save(any(OtpDetails.class));
         verify(emailOutPutPort).sendEmail(any());
     }
@@ -107,6 +107,6 @@ class OtpServiceTest {
     @Test
     void resendOtp_shouldFailValidationWhenEmailMissing() {
         assertThrows(WalletManagementException.class,
-                () -> otpService.resendOtp("", OtpType.FORGOT_PASSWORD));
+                () -> otpService.resendOtp("", OtpType.PASSWORD_RESET));
     }
 }
