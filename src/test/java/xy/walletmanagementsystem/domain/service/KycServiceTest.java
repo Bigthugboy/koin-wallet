@@ -7,7 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import xy.walletmanagementsystem.applicationPort.output.KycOutPutPort;
 import xy.walletmanagementsystem.applicationPort.output.UserOutPutPort;
-import xy.walletmanagementsystem.domain.enums.KycStatus;
+import xy.walletmanagementsystem.domain.enums.KycVerificationStatus;
 import xy.walletmanagementsystem.domain.exception.WalletManagementException;
 import xy.walletmanagementsystem.domain.model.Kyc;
 import xy.walletmanagementsystem.domain.model.User;
@@ -45,7 +45,7 @@ class KycServiceTest {
     @Test
     void submitKyc_shouldSaveAndAutoVerifyWhenValid() throws Exception {
         User user = User.builder().id("user-1").build();
-        Kyc pending = Kyc.builder().id("kyc-1").userId("user-1").kycStatus(KycStatus.PENDING).build();
+        Kyc pending = Kyc.builder().id("kyc-1").userId("user-1").status(KycVerificationStatus.PENDING).build();
         when(userOutPutPort.findById("user-1")).thenReturn(Optional.of(user));
         when(kycOutPutPort.findByUserId("user-1")).thenReturn(Optional.empty());
         when(kycOutPutPort.save(any(Kyc.class))).thenAnswer(invocation -> {
@@ -70,11 +70,11 @@ class KycServiceTest {
 
     @Test
     void updateVerificationStatus_shouldUpdateStatus() throws Exception {
-        Kyc kyc = Kyc.builder().id("kyc-1").userId("user-1").kycStatus(KycStatus.PENDING).build();
+        Kyc kyc = Kyc.builder().id("kyc-1").userId("user-1").status(KycVerificationStatus.PENDING).build();
         when(kycOutPutPort.findById("kyc-1")).thenReturn(Optional.of(kyc));
         when(kycOutPutPort.save(any(Kyc.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Kyc updated = kycService.updateVerificationStatus("kyc-1", "VERIFIED");
-        assertEquals(KycStatus.VERIFIED, updated.getKycStatus());
+        assertEquals(KycVerificationStatus.VERIFIED, updated.getStatus());
     }
 }
