@@ -39,5 +39,5 @@ public class OtpEntity {
     private OtpType type;
 
     private LocalDateTime expiryDate;
-    private LocalDateTime createdDate;
+    private LocalDateTime dateCreated;
 }
