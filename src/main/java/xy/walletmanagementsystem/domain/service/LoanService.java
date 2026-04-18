@@ -36,7 +36,7 @@ public class LoanService implements LoanUseCase {
 
     @Override
     @Transactional
-    public Loan applyForLoan(String userId, BigDecimal amount, Integer durationInDays) throws WalletManagementException {
+    public Loan applyForLoan(Long userId, BigDecimal amount, Integer durationInDays) throws WalletManagementException {
         validateRequest(userId, amount, durationInDays);
         Wallet wallet = walletOutPutPort.findByUserId(userId)
                 .orElseThrow(() -> new WalletManagementException(ErrorMessages.WALLET_NOT_FOUND));
@@ -54,7 +54,7 @@ public class LoanService implements LoanUseCase {
 
 
     @Override
-    public Loan approveLoan(String loanId) throws WalletManagementException {
+    public Loan approveLoan(Long loanId) throws WalletManagementException {
         Loan loan = loanOutPutPort.findById(loanId)
                 .orElseThrow(() -> new WalletManagementException(ErrorMessages.LOAN_NOT_FOUND));
         if (loan.getStatus() != LoanStatus.PENDING) {
@@ -69,8 +69,8 @@ public class LoanService implements LoanUseCase {
 
     @Override
     @Transactional
-    public Loan disburseLoan(String loanId) throws WalletManagementException {
-        if(StringUtils.isBlank(loanId)) {
+    public Loan disburseLoan(Long loanId) throws WalletManagementException {
+        if(loanId == null) {
             throw new WalletManagementException(ErrorMessages.LOAN_ID_IS_REQUIRED);
         }
         Loan loan = loanOutPutPort.findById(loanId)
@@ -93,8 +93,8 @@ public class LoanService implements LoanUseCase {
 
     @Override
     @Transactional
-    public void repayLoan(String loanId, BigDecimal amount, String idempotencyKey) throws WalletManagementException {
-        if(StringUtils.isBlank(loanId)){
+    public void repayLoan(Long loanId, BigDecimal amount, String idempotencyKey) throws WalletManagementException {
+        if(loanId == null){
             throw new WalletManagementException(ErrorMessages.LOAN_ID_IS_REQUIRED);
         }
         if(amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -126,8 +126,8 @@ public class LoanService implements LoanUseCase {
     }
 
     @Override
-    public Loan getLoanDetails(String loanId) throws WalletManagementException {
-        if(StringUtils.isBlank(loanId)) {
+    public Loan getLoanDetails(Long loanId) throws WalletManagementException {
+        if(loanId == null) {
             throw new WalletManagementException(ErrorMessages.LOAN_ID_IS_REQUIRED);
         }
         return loanOutPutPort.findById(loanId)
@@ -135,8 +135,8 @@ public class LoanService implements LoanUseCase {
     }
 
     @Override
-    public List<Loan> getAllLoansForUser(String userId) throws WalletManagementException {
-        if(StringUtils.isBlank(userId)) {
+    public List<Loan> getAllLoansForUser(Long userId) throws WalletManagementException {
+        if(userId == null) {
             throw new WalletManagementException(ErrorMessages.USER_ID_IS_REQUIRED);
         }
         return loanOutPutPort.findByUserId(userId);
@@ -148,7 +148,7 @@ public class LoanService implements LoanUseCase {
     }
 
 
-    private static Loan buildLoanDetails(String userId, BigDecimal amount, Integer durationInDays) {
+    private static Loan buildLoanDetails(Long userId, BigDecimal amount, Integer durationInDays) {
         return Loan.builder()
                 .userId(userId)
                 .amount(amount)
@@ -161,8 +161,8 @@ public class LoanService implements LoanUseCase {
                 .build();
     }
 
-    private static void validateRequest(String userId, BigDecimal amount, Integer durationInDays) throws WalletManagementException {
-        if(StringUtils.isBlank(userId)) {
+    private static void validateRequest(Long userId, BigDecimal amount, Integer durationInDays) throws WalletManagementException {
+        if(userId == null) {
             throw new WalletManagementException(ErrorMessages.USER_ID_IS_REQUIRED);
         }
         if(amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -225,7 +225,7 @@ public class LoanService implements LoanUseCase {
         walletOutPutPort.save(wallet);
     }
 
-    private void notifyLoanUser(String userId, String message) {
+    private void notifyLoanUser(Long userId, String message) {
         userOutPutPort.findById(userId)
                 .ifPresent(user -> notificationOutPutPort.sendLoanNotification(user.getEmail(), message));
     }
