@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface UserUseCase {
         User createUser(User user);
-        User updateUserProfile(String userId, User user) throws WalletManagementException;
+        User updateUserProfile(Long userId, User user) throws WalletManagementException;
 
-        Optional<User> getUserDetails(String id) throws WalletManagementException;
+        Optional<User> getUserDetails(Long id) throws WalletManagementException;
 }
