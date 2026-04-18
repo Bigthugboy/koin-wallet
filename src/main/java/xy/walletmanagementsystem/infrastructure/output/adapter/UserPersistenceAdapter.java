@@ -28,9 +28,15 @@ public class UserPersistenceAdapter implements UserOutPutPort {
                 .map(userMapper::toDomain);
     }
 
+    @Override
     public User save(User user) {
         UserEntity entity = userMapper.toEntity(user);
         UserEntity savedEntity = userRepository.save(entity);
         return userMapper.toDomain(savedEntity);
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
     }
 }
