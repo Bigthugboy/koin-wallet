@@ -4,5 +4,5 @@ public enum OtpType {
     REGISTRATION,
     FORGOT_PASSWORD,
     CHANGE_EMAIL,
-    OTHER
+    RESEND_OTP, OTHER
 }
