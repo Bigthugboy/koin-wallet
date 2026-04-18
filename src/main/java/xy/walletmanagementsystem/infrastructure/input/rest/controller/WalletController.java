@@ -6,86 +6,65 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import xy.walletmanagementsystem.applicationPort.input.WalletUseCase;
-import xy.walletmanagementsystem.applicationPort.output.UserOutPutPort;
 import xy.walletmanagementsystem.domain.exception.WalletManagementException;
+import xy.walletmanagementsystem.domain.messages.UrlConstant;
 import xy.walletmanagementsystem.domain.model.Transaction;
-import xy.walletmanagementsystem.domain.model.User;
 import xy.walletmanagementsystem.domain.model.Wallet;
+import xy.walletmanagementsystem.infrastructure.input.rest.message.SwaggerUiConstants;
 import xy.walletmanagementsystem.infrastructure.input.rest.data.request.WalletFundingRequest;
 import xy.walletmanagementsystem.infrastructure.input.rest.data.response.ApiResponse;
 import xy.walletmanagementsystem.infrastructure.input.rest.data.response.TransactionResponse;
 import xy.walletmanagementsystem.infrastructure.input.rest.data.response.WalletResponse;
+import xy.walletmanagementsystem.infrastructure.input.rest.mapper.RestMapper;
+import xy.walletmanagementsystem.infrastructure.output.config.security.CustomUserDetails;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/v1/wallet")
+@RequestMapping(UrlConstant.WALLET_URL)
 @RequiredArgsConstructor
-@Tag(name = "Wallet Management", description = "Endpoints for wallet operations and transaction history")
-@SecurityRequirement(name = "bearerAuth")
+@Tag(name = SwaggerUiConstants.WALLET_TAG_NAME, description = SwaggerUiConstants.WALLET_TAG_DESCRIPTION)
 public class WalletController {
 
     private final WalletUseCase walletUseCase;
-    private final UserOutPutPort userOutPutPort;
+    private final RestMapper restMapper;
+
+
+    @PostMapping("/create")
+    @Operation(summary = SwaggerUiConstants.CREATE_WALLET_SUMMARY, description = SwaggerUiConstants.CREATE_WALLET_DESCRIPTION)
+    public ResponseEntity<ApiResponse<WalletResponse>> createWallet(@AuthenticationPrincipal CustomUserDetails userDetails) throws WalletManagementException {
+        Wallet wallet = walletUseCase.createWallet(userDetails.getId());
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(wallet), "Wallet created successfully"));
+    }
 
     @PostMapping("/fund")
-    @Operation(summary = "Fund wallet (Simulate payment)")
-    public ResponseEntity<ApiResponse<String>> fundWallet(Authentication authentication, @Valid @RequestBody WalletFundingRequest request) throws WalletManagementException {
-        String email = authentication.getName();
-        User user = userOutPutPort.findByEmail(email)
-                .orElseThrow(() -> new WalletManagementException("User not found"));
-        
-        walletUseCase.fundWallet(user.getId(), request.getAmount(), request.getReference());
+    @Operation(summary = SwaggerUiConstants.FUND_WALLET_SUMMARY, description = SwaggerUiConstants.FUND_WALLET_DESCRIPTION)
+    public ResponseEntity<ApiResponse<String>> fundWallet(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody WalletFundingRequest request) throws WalletManagementException {
+        walletUseCase.fundWallet(userDetails.getId(), request.getAmount(), request.getReference());
         return ResponseEntity.ok(ApiResponse.ok("Wallet funded successfully"));
     }
 
     @GetMapping("/balance")
-    @Operation(summary = "Check wallet balance")
-    public ResponseEntity<ApiResponse<WalletResponse>> getBalance(Authentication authentication) throws WalletManagementException {
-        String email = authentication.getName();
-        User user = userOutPutPort.findByEmail(email)
-                .orElseThrow(() -> new WalletManagementException("User not found"));
-        
-        Wallet wallet = walletUseCase.getWalletBalance(user.getId());
-        WalletResponse response = WalletResponse.builder()
-                .walletId(wallet.getWalletId())
-                .userId(wallet.getUserId())
-                .balance(wallet.getBalance())
-                .currency(wallet.getCurrency())
-                .status(wallet.getStatus())
-                .createdDate(wallet.getCreatedDate())
-                .build();
-        
-        return ResponseEntity.ok(ApiResponse.success(response, "Balance retrieved successfully"));
+    @Operation(summary = SwaggerUiConstants.GET_BALANCE_SUMMARY, description = SwaggerUiConstants.GET_BALANCE_DESCRIPTION)
+    public ResponseEntity<ApiResponse<WalletResponse>> getBalance(@AuthenticationPrincipal CustomUserDetails userDetails) throws WalletManagementException {
+        Wallet wallet = walletUseCase.getWalletBalance(userDetails.getId());
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(wallet), "Balance retrieved successfully"));
     }
 
     @GetMapping("/transactions")
-    @Operation(summary = "View transaction history")
-    public ResponseEntity<ApiResponse<List<TransactionResponse>>> getTransactions(Authentication authentication) throws WalletManagementException {
-        String email = authentication.getName();
-        User user = userOutPutPort.findByEmail(email)
-                .orElseThrow(() -> new WalletManagementException("User not found"));
-        
-        List<Transaction> transactions = walletUseCase.getTransactionHistory(user.getId());
+    @Operation(summary = SwaggerUiConstants.GET_TRANSACTIONS_SUMMARY, description = SwaggerUiConstants.GET_TRANSACTIONS_DESCRIPTION)
+    public ResponseEntity<ApiResponse<List<TransactionResponse>>> getTransactions(@AuthenticationPrincipal CustomUserDetails userDetails) throws WalletManagementException {
+        List<Transaction> transactions = walletUseCase.getTransactionHistory(userDetails.getId());
         List<TransactionResponse> response = transactions.stream()
-                .map(t -> TransactionResponse.builder()
-                        .transactionId(t.getTransactionId())
-                        .userId(t.getUserId())
-                        .walletId(t.getWalletId())
-                        .type(t.getType())
-                        .amount(t.getAmount())
-                        .status(t.getStatus())
-                        .referenceNumber(t.getReferenceNumber())
-                        .timestamp(t.getTimestamp())
-                        .build())
+                .map(restMapper::toResponse)
                 .collect(Collectors.toList());
         
         return ResponseEntity.ok(ApiResponse.success(response, "Transaction history retrieved successfully"));
