@@ -35,6 +35,6 @@ public class WalletEntity {
     @Enumerated(EnumType.STRING)
     private WalletStatus status;
 
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedDate;
+    private LocalDateTime dateCreated;
+    private LocalDateTime dateUpdate;
 }
