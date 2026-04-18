@@ -74,7 +74,7 @@ public class OtpService implements OtpUseCase {
 
     private void sendOtpEmail(OtpDetails otpDetails) {
         String subject = switch (otpDetails.getType()) {
-            case FORGOT_PASSWORD -> "Password Reset OTP";
+            case PASSWORD_RESET -> "Password Reset OTP";
             case REGISTRATION -> "Registration OTP";
             case CHANGE_EMAIL -> "Email Change OTP";
             case RESEND_OTP -> "Resend OTP";
