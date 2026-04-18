@@ -129,8 +129,8 @@ public class AuthService implements AuthUseCase {
     }
 
     @Override
-    public void logout(String userId, String token) throws WalletManagementException {
-        if (StringUtils.isBlank(userId)) {
+    public void logout(Long userId, String token) throws WalletManagementException {
+        if (userId == null) {
             throw new WalletManagementException(ErrorMessages.USER_ID_IS_REQUIRED);
         }
         Optional<User> user = userOutPutPort.findById(userId);
