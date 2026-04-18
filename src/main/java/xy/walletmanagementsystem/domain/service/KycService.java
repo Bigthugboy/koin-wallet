@@ -48,7 +48,7 @@ public class KycService implements KycUseCase {
     public Kyc updateVerificationStatus(String kycId, String status) throws WalletManagementException {
         Kyc kyc = kycOutPutPort.findById(kycId).orElseThrow(() -> new WalletManagementException(ErrorMessages.KYC_NOT_FOUND));
         kyc.setKycStatus(KycStatus.valueOf(status));
-        kyc.setUpdatedDate(LocalDateTime.now());
+        kyc.setDateUpdate(LocalDateTime.now());
         return kycOutPutPort.save(kyc);
     }
 
@@ -107,7 +107,7 @@ public class KycService implements KycUseCase {
         }
 
         kyc.setKycStatus(KycStatus.VERIFIED);
-        kyc.setUpdatedDate(LocalDateTime.now(ZoneOffset.UTC));
+        kyc.setDateUpdate(LocalDateTime.now(ZoneOffset.UTC));
         return kycOutPutPort.save(kyc);
     }
 
@@ -125,7 +125,7 @@ public class KycService implements KycUseCase {
                     "Only KYC records pending review can be rejected");
         }
         kyc.setKycStatus(KycStatus.REJECTED);
-        kyc.setUpdatedDate(LocalDateTime.now(ZoneOffset.UTC));
+        kyc.setDateUpdate(LocalDateTime.now(ZoneOffset.UTC));
         return kycOutPutPort.save(kyc);
     }
 
@@ -148,8 +148,8 @@ public class KycService implements KycUseCase {
                 .bvn(bvn)
                 .nin(nin)
                 .kycStatus(KycStatus.PENDING)
-                .createdDate(LocalDateTime.now())
-                .updatedDate(LocalDateTime.now())
+                .dateCreated(LocalDateTime.now())
+                .dateUpdate(LocalDateTime.now())
                 .build();
     }
 }
