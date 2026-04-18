@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import xy.walletmanagementsystem.applicationPort.input.KycUseCase;
 import xy.walletmanagementsystem.applicationPort.output.KycOutPutPort;
 import xy.walletmanagementsystem.applicationPort.output.UserOutPutPort;
-import xy.walletmanagementsystem.domain.enums.KycStatus;
+import xy.walletmanagementsystem.domain.enums.KycVerificationStatus;
 import xy.walletmanagementsystem.domain.exception.WalletManagementException;
 import xy.walletmanagementsystem.domain.model.Kyc;
 import xy.walletmanagementsystem.infrastructure.input.rest.message.ErrorMessages;
@@ -47,11 +47,10 @@ public class KycService implements KycUseCase {
     @Override
     public Kyc updateVerificationStatus(String kycId, String status) throws WalletManagementException {
         Kyc kyc = kycOutPutPort.findById(kycId).orElseThrow(() -> new WalletManagementException(ErrorMessages.KYC_NOT_FOUND));
-        kyc.setKycStatus(KycStatus.valueOf(status));
+        kyc.setStatus(KycVerificationStatus.valueOf(status));
         kyc.setDateUpdate(LocalDateTime.now());
         return kycOutPutPort.save(kyc);
     }
-
 
     public void verifyKyc(String id, String ownerId) throws WalletManagementException{
         validateIdentifiers(id, ownerId);
@@ -67,7 +66,7 @@ public class KycService implements KycUseCase {
         log.info(
                 "KYC submitted for manual review successfully. kycId={}, status={}",
                 approvedKyc.getId(),
-                approvedKyc.getKycStatus());
+                approvedKyc.getStatus());
     }
 
     private void validateIdentifiers(String id, String userId) throws WalletManagementException {
@@ -89,10 +88,10 @@ public class KycService implements KycUseCase {
     }
 
     private void validateKycEligibility(Kyc kyc) throws WalletManagementException {
-        if (KycStatus.VERIFIED.equals(kyc.getKycStatus())) {
+        if (KycVerificationStatus.VERIFIED.equals(kyc.getStatus())) {
             throw new WalletManagementException(ErrorMessages.KYC_ALREADY_APPROVED);
         }
-        if (KycStatus.REJECTED.equals(kyc.getKycStatus())) {
+        if (KycVerificationStatus.REJECTED.equals(kyc.getStatus())) {
             throw new WalletManagementException(ErrorMessages.KYC_ALREADY_REJECTED);
         }
     }
@@ -102,11 +101,11 @@ public class KycService implements KycUseCase {
 
         Kyc kyc = getKycDetails(id, ownerId);
 
-        if (!KycStatus.PENDING.equals(kyc.getKycStatus())) {
+        if (!KycVerificationStatus.PENDING.equals(kyc.getStatus())) {
             throw new WalletManagementException(ErrorMessages.KYC_STATUS_NOT_PENDING_REVIEW);
         }
 
-        kyc.setKycStatus(KycStatus.VERIFIED);
+        kyc.setStatus(KycVerificationStatus.VERIFIED);
         kyc.setDateUpdate(LocalDateTime.now(ZoneOffset.UTC));
         return kycOutPutPort.save(kyc);
     }
@@ -120,11 +119,11 @@ public class KycService implements KycUseCase {
 
         Kyc kyc = getKycDetails(id, ownerId);
 
-        if (!KycStatus.PENDING.equals(kyc.getKycStatus())) {
+        if (!KycVerificationStatus.PENDING.equals(kyc.getStatus())) {
             throw new WalletManagementException(
                     "Only KYC records pending review can be rejected");
         }
-        kyc.setKycStatus(KycStatus.REJECTED);
+        kyc.setStatus(KycVerificationStatus.REJECTED);
         kyc.setDateUpdate(LocalDateTime.now(ZoneOffset.UTC));
         return kycOutPutPort.save(kyc);
     }
@@ -147,7 +146,7 @@ public class KycService implements KycUseCase {
                 .userId(userId)
                 .bvn(bvn)
                 .nin(nin)
-                .kycStatus(KycStatus.PENDING)
+                .status(KycVerificationStatus.PENDING)
                 .dateCreated(LocalDateTime.now())
                 .dateUpdate(LocalDateTime.now())
                 .build();
