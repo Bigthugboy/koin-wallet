@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,6 +29,8 @@ import xy.walletmanagementsystem.infrastructure.output.config.security.CustomUse
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static xy.walletmanagementsystem.domain.messages.UrlConstant.IDEMPOTENCY_KEY;
 
 @RestController
 @RequestMapping(UrlConstant.LOAN_URL)
@@ -61,8 +64,12 @@ public class LoanController {
 
     @PostMapping("/{loanId}/repay")
     @Operation(summary = SwaggerUiConstants.REPAY_LOAN_SUMMARY, description = SwaggerUiConstants.REPAY_LOAN_DESCRIPTION)
-    public ResponseEntity<ApiResponse<String>> repayLoan(@PathVariable String loanId, @RequestParam BigDecimal amount) throws WalletManagementException {
-        loanUseCase.repayLoan(loanId, amount);
+    public ResponseEntity<ApiResponse<String>> repayLoan(
+            @PathVariable String loanId, 
+            @RequestParam BigDecimal amount,
+            @RequestHeader(value = IDEMPOTENCY_KEY, required = false) String idempotencyKey
+    ) throws WalletManagementException {
+        loanUseCase.repayLoan(loanId, amount, idempotencyKey);
         return ResponseEntity.ok(ApiResponse.ok("Repayment processed successfully"));
     }
 
