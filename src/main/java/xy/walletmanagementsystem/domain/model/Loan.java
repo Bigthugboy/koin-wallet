@@ -23,6 +23,7 @@ public class Loan {
     private Integer durationInDays;
     private LoanStatus status;
     private String repaymentSchedule; // JSON representation
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedDate;
+    private LocalDateTime dateDisbursed;
+    private LocalDateTime dateCreated;
+    private LocalDateTime dateUpdate;
 }
