@@ -15,5 +15,5 @@ public interface AuthUseCase {
 
     void logout(String userId, String token) throws WalletManagementException;
 
-    void changePassword(String userId, String currentPassword, String newPassword, String confirmNewPassword) throws WalletManagementException;
+
 }
