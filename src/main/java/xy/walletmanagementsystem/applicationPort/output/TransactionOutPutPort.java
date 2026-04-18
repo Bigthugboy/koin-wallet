@@ -7,8 +7,8 @@ import java.util.Optional;
 
 public interface TransactionOutPutPort {
     Transaction save(Transaction transaction);
-    Optional<Transaction> findById(String transactionId);
-    List<Transaction> findByUserId(String userId);
+    Optional<Transaction> findById(Long transactionId);
+    List<Transaction> findByUserId(Long userId);
     List<Transaction> findAll();
     Optional<Transaction> findByReference(String reference);
 }
