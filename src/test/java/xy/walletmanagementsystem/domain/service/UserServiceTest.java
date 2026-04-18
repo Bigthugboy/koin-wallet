@@ -28,12 +28,12 @@ class UserServiceTest {
 
     @Test
     void updateUserProfile_shouldUpdateExistingFields() throws Exception {
-        User existing = User.builder().id("user-1").fullName("Old").phoneNumber("0801").build();
+        User existing = User.builder().id(1L).fullName("Old").phoneNumber("0801").build();
         User updates = User.builder().fullName("New Name").phoneNumber("0802").build();
-        when(userOutPutPort.findById("user-1")).thenReturn(Optional.of(existing));
+        when(userOutPutPort.findById(1L)).thenReturn(Optional.of(existing));
         when(userOutPutPort.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        User result = userService.updateUserProfile("user-1", updates);
+        User result = userService.updateUserProfile(1L, updates);
 
         assertEquals("New Name", result.getFullName());
         assertEquals("0802", result.getPhoneNumber());
@@ -42,13 +42,13 @@ class UserServiceTest {
 
     @Test
     void updateUserProfile_shouldFailWhenUserNotFound() {
-        when(userOutPutPort.findById("user-1")).thenReturn(Optional.empty());
+        when(userOutPutPort.findById(1L)).thenReturn(Optional.empty());
         assertThrows(WalletManagementException.class,
-                () -> userService.updateUserProfile("user-1", User.builder().build()));
+                () -> userService.updateUserProfile(1L, User.builder().build()));
     }
 
     @Test
     void getUserDetails_shouldFailForBlankId() {
-        assertThrows(WalletManagementException.class, () -> userService.getUserDetails(""));
+        assertThrows(WalletManagementException.class, () -> userService.getUserDetails(null));
     }
 }
