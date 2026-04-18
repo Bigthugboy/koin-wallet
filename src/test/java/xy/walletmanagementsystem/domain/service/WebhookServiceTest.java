@@ -37,7 +37,7 @@ class WebhookServiceTest {
 
     @Test
     void handlePaystackWebhook_shouldFundWalletWhenPaymentSuccessful() throws Exception {
-        User user = User.builder().id("user-1").email("john@example.com").build();
+        User user = User.builder().id(1L).email("john@example.com").build();
         when(userOutPutPort.findByEmail("john@example.com")).thenReturn(Optional.of(user));
 
         Map<String, Object> payload = Map.of(
@@ -52,7 +52,7 @@ class WebhookServiceTest {
         String response = webhookService.handlePaystackWebhook("sig", payload);
 
         assertEquals("Webhook processed", response);
-        verify(walletUseCase).fundWallet(eq("user-1"), eq(new BigDecimal("55")), eq("ref-1"));
+        verify(walletUseCase).fundWallet(eq(1L), eq(new BigDecimal("55")), eq("ref-1"));
         verify(notificationOutPutPort).sendPaymentNotification(eq("john@example.com"), contains("ref-1"));
     }
 
