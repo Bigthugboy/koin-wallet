@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface LoanOutPutPort {
     Loan save(Loan loan);
-    Optional<Loan> findById(String loanId);
-    List<Loan> findByUserId(String userId);
+    Optional<Loan> findById(Long loanId);
+    List<Loan> findByUserId(Long userId);
     List<Loan> findAll();
 }
