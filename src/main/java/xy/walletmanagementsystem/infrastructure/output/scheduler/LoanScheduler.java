@@ -64,14 +64,16 @@ public class LoanScheduler {
             if (dueDate.isBefore(now)) {
                 log.warn("Marking loan {} as DEFAULTED", loan.getLoanId());
                 loan.setStatus(LoanStatus.DEFAULTED);
-                loan.setUpdatedDate(now);
+                loan.setDateUpdate(now);
                 loanOutPutPort.save(loan);
             }
         }
     }
 
     private LocalDateTime calculateDueDate(Loan loan) {
-        LocalDateTime disbursementDate = loan.getUpdatedDate() != null ? loan.getUpdatedDate() : loan.getCreatedDate();
+        LocalDateTime disbursementDate = loan.getDateDisbursed() != null
+                ? loan.getDateDisbursed()
+                : (loan.getDateUpdate() != null ? loan.getDateUpdate() : loan.getDateCreated());
         return disbursementDate.plusDays(loan.getDurationInDays());
     }
 }
