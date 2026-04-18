@@ -89,7 +89,7 @@ public class KycService implements KycUseCase {
     }
 
     private void validateKycEligibility(Kyc kyc) throws WalletManagementException {
-        if (KycStatus.APPROVED.equals(kyc.getKycStatus())) {
+        if (KycStatus.VERIFIED.equals(kyc.getKycStatus())) {
             throw new WalletManagementException(ErrorMessages.KYC_ALREADY_APPROVED);
         }
         if (KycStatus.REJECTED.equals(kyc.getKycStatus())) {
@@ -106,7 +106,7 @@ public class KycService implements KycUseCase {
             throw new WalletManagementException(ErrorMessages.KYC_STATUS_NOT_PENDING_REVIEW);
         }
 
-        kyc.setKycStatus(KycStatus.APPROVED);
+        kyc.setKycStatus(KycStatus.VERIFIED);
         kyc.setUpdatedDate(LocalDateTime.now(ZoneOffset.UTC));
         return kycOutPutPort.save(kyc);
     }
