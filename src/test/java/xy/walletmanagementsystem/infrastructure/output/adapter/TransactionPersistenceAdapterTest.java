@@ -30,8 +30,8 @@ class TransactionPersistenceAdapterTest {
 
     @Test
     void save_shouldPersistMappedEntity() {
-        Transaction tx = Transaction.builder().transactionId("t1").build();
-        TransactionEntity entity = TransactionEntity.builder().id("t1").build();
+        Transaction tx = Transaction.builder().transactionId(1L).build();
+        TransactionEntity entity = TransactionEntity.builder().id(1L).build();
         when(transactionMapper.toEntity(tx)).thenReturn(entity);
         when(transactionRepository.save(entity)).thenReturn(entity);
         when(transactionMapper.toDomain(entity)).thenReturn(tx);
@@ -42,18 +42,18 @@ class TransactionPersistenceAdapterTest {
 
     @Test
     void findById_shouldReturnOptionalDomain() {
-        TransactionEntity entity = TransactionEntity.builder().id("t1").build();
-        when(transactionRepository.findById("t1")).thenReturn(Optional.of(entity));
-        when(transactionMapper.toDomain(entity)).thenReturn(Transaction.builder().transactionId("t1").build());
+        TransactionEntity entity = TransactionEntity.builder().id(1L).build();
+        when(transactionRepository.findById(1L)).thenReturn(Optional.of(entity));
+        when(transactionMapper.toDomain(entity)).thenReturn(Transaction.builder().transactionId(1L).build());
 
-        assertTrue(adapter.findById("t1").isPresent());
+        assertTrue(adapter.findById(1L).isPresent());
     }
 
     @Test
     void findAll_shouldReturnMappedList() {
-        TransactionEntity entity = TransactionEntity.builder().id("t1").build();
+        TransactionEntity entity = TransactionEntity.builder().id(1L).build();
         when(transactionRepository.findAll()).thenReturn(List.of(entity));
-        when(transactionMapper.toDomain(entity)).thenReturn(Transaction.builder().transactionId("t1").build());
+        when(transactionMapper.toDomain(entity)).thenReturn(Transaction.builder().transactionId(1L).build());
 
         assertEquals(1, adapter.findAll().size());
     }
