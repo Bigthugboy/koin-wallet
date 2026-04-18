@@ -29,8 +29,8 @@ class UserPersistenceAdapterTest {
 
     @Test
     void save_shouldMapDomainEntityAndBack() {
-        User user = User.builder().id("u1").build();
-        UserEntity entity = UserEntity.builder().id("u1").build();
+        User user = User.builder().id(1L).build();
+        UserEntity entity = UserEntity.builder().id(1L).build();
         when(userMapper.toEntity(user)).thenReturn(entity);
         when(userRepository.save(entity)).thenReturn(entity);
         when(userMapper.toDomain(entity)).thenReturn(user);
@@ -42,9 +42,9 @@ class UserPersistenceAdapterTest {
 
     @Test
     void findByEmail_shouldMapResult() {
-        UserEntity entity = UserEntity.builder().id("u1").email("a@a.com").build();
+        UserEntity entity = UserEntity.builder().id(1L).email("a@a.com").build();
         when(userRepository.findByEmail("a@a.com")).thenReturn(Optional.of(entity));
-        when(userMapper.toDomain(any(UserEntity.class))).thenReturn(User.builder().id("u1").build());
+        when(userMapper.toDomain(any(UserEntity.class))).thenReturn(User.builder().id(1L).build());
 
         assertTrue(adapter.findByEmail("a@a.com").isPresent());
     }
