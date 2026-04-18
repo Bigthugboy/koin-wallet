@@ -8,8 +8,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface WalletUseCase {
-    Wallet createWallet(String userId) throws WalletManagementException;
-    void fundWallet(String userId, BigDecimal amount, String reference) throws WalletManagementException;
-    Wallet getWalletBalance(String userId) throws WalletManagementException;
-    List<Transaction> getTransactionHistory(String userId) throws WalletManagementException;
+    Wallet createWallet(Long userId) throws WalletManagementException;
+    void fundWallet(Long userId, BigDecimal amount, String reference) throws WalletManagementException;
+    Wallet getWalletBalance(Long userId) throws WalletManagementException;
+    List<Transaction> getTransactionHistory(Long userId) throws WalletManagementException;
 }
