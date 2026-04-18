@@ -10,5 +10,5 @@ public interface TransactionOutPutPort {
     Optional<Transaction> findById(String transactionId);
     List<Transaction> findByUserId(String userId);
     List<Transaction> findAll();
-    Optional<Transaction> findByReferenceNumber(String referenceNumber);
+    Optional<Transaction> findByReference(String reference);
 }
