@@ -28,8 +28,8 @@ class WalletPersistenceAdapterTest {
 
     @Test
     void save_shouldMapAndPersist() {
-        Wallet wallet = Wallet.builder().walletId("w1").build();
-        WalletEntity entity = WalletEntity.builder().id("w1").build();
+        Wallet wallet = Wallet.builder().walletId(1L).build();
+        WalletEntity entity = WalletEntity.builder().id(1L).build();
         when(walletMapper.toEntity(wallet)).thenReturn(entity);
         when(walletRepository.save(entity)).thenReturn(entity);
         when(walletMapper.toDomain(entity)).thenReturn(wallet);
@@ -40,10 +40,10 @@ class WalletPersistenceAdapterTest {
 
     @Test
     void findByUserId_shouldReturnOptionalDomain() {
-        WalletEntity entity = WalletEntity.builder().id("w1").userId("u1").build();
-        when(walletRepository.findByUserId("u1")).thenReturn(Optional.of(entity));
-        when(walletMapper.toDomain(entity)).thenReturn(Wallet.builder().walletId("w1").build());
+        WalletEntity entity = WalletEntity.builder().id(1L).userId(1L).build();
+        when(walletRepository.findByUserId(1L)).thenReturn(Optional.of(entity));
+        when(walletMapper.toDomain(entity)).thenReturn(Wallet.builder().walletId(1L).build());
 
-        assertTrue(adapter.findByUserId("u1").isPresent());
+        assertTrue(adapter.findByUserId(1L).isPresent());
     }
 }
