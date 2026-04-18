@@ -13,7 +13,7 @@ public interface AuthUseCase {
 
     void resetPassword(String email, String otp, String newPassword) throws WalletManagementException;
 
-    void logout(String userId, String token) throws WalletManagementException;
+    void logout(Long userId, String token) throws WalletManagementException;
 
 
 }
