@@ -33,48 +33,48 @@ class KycServiceTest {
     @Test
     void submitKyc_shouldRejectWhenBothBvnAndNinMissing() {
         assertThrows(WalletManagementException.class,
-                () -> kycService.submitKyc("user-1", "", ""));
+                () -> kycService.submitKyc(1L, "", ""));
     }
 
     @Test
     void submitKyc_shouldRejectInvalidBvnFormat() {
         assertThrows(WalletManagementException.class,
-                () -> kycService.submitKyc("user-1", "123", ""));
+                () -> kycService.submitKyc(1L, "123", ""));
     }
 
     @Test
     void submitKyc_shouldSaveAndAutoVerifyWhenValid() throws Exception {
-        User user = User.builder().id("user-1").build();
-        Kyc pending = Kyc.builder().id("kyc-1").userId("user-1").status(KycVerificationStatus.PENDING).build();
-        when(userOutPutPort.findById("user-1")).thenReturn(Optional.of(user));
-        when(kycOutPutPort.findByUserId("user-1")).thenReturn(Optional.empty());
+        User user = User.builder().id(1L).build();
+        Kyc pending = Kyc.builder().id(1L).userId(1L).status(KycVerificationStatus.PENDING).build();
+        when(userOutPutPort.findById(1L)).thenReturn(Optional.of(user));
+        when(kycOutPutPort.findByUserId(1L)).thenReturn(Optional.empty());
         when(kycOutPutPort.save(any(Kyc.class))).thenAnswer(invocation -> {
             Kyc value = invocation.getArgument(0);
             if (value.getId() == null) {
-                value.setId("kyc-1");
+                value.setId(1L);
             }
             return value;
         });
-        when(kycOutPutPort.findByIdAndUserId("kyc-1", "user-1")).thenReturn(pending);
+        when(kycOutPutPort.findByIdAndUserId(1L, 1L)).thenReturn(pending);
 
-        Kyc result = kycService.submitKyc("user-1", "12345678901", "");
+        Kyc result = kycService.submitKyc(1L, "12345678901", "");
 
-        assertEquals("kyc-1", result.getId());
+        assertEquals(1L, result.getId());
     }
 
     @Test
     void getKycDetails_shouldFailWhenNotFound() {
-        when(kycOutPutPort.findByUserId("user-1")).thenReturn(Optional.empty());
-        assertThrows(WalletManagementException.class, () -> kycService.getKycDetails("user-1"));
+        when(kycOutPutPort.findByUserId(1L)).thenReturn(Optional.empty());
+        assertThrows(WalletManagementException.class, () -> kycService.getKycDetails(1L));
     }
 
     @Test
     void updateVerificationStatus_shouldUpdateStatus() throws Exception {
-        Kyc kyc = Kyc.builder().id("kyc-1").userId("user-1").status(KycVerificationStatus.PENDING).build();
-        when(kycOutPutPort.findById("kyc-1")).thenReturn(Optional.of(kyc));
+        Kyc kyc = Kyc.builder().id(1L).userId(1L).status(KycVerificationStatus.PENDING).build();
+        when(kycOutPutPort.findById(1L)).thenReturn(Optional.of(kyc));
         when(kycOutPutPort.save(any(Kyc.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Kyc updated = kycService.updateVerificationStatus("kyc-1", "VERIFIED");
+        Kyc updated = kycService.updateVerificationStatus(1L, "VERIFIED");
         assertEquals(KycVerificationStatus.VERIFIED, updated.getStatus());
     }
 }
