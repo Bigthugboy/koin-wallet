@@ -13,4 +13,6 @@ public class UrlConstant {
     public static final String TRANSACTION_URL = BASE_URL + "/transaction";
     public static final String WALLET_URL = BASE_URL + "/wallet";
     public static final String LOAN_URL = BASE_URL + "/loan";
+    public static final String IDEMPOTENCY_KEY = "idempotency-key";
+
 }
