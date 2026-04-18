@@ -129,7 +129,7 @@ class AuthServiceTest {
 
         authService.forgetPassword("john@example.com");
 
-        verify(otpUseCase).generateOtp("john@example.com", OtpType.FORGOT_PASSWORD);
+        verify(otpUseCase).generateOtp("john@example.com", OtpType.PASSWORD_RESET);
     }
 
     @Test
@@ -141,7 +141,7 @@ class AuthServiceTest {
 
     @Test
     void resetPassword_shouldUpdateEncodedPasswordWhenOtpValid() throws Exception {
-        when(otpUseCase.verifyOtp("john@example.com", "123456", OtpType.FORGOT_PASSWORD)).thenReturn(true);
+        when(otpUseCase.verifyOtp("john@example.com", "123456", OtpType.PASSWORD_RESET)).thenReturn(true);
         when(userOutPutPort.findByEmail("john@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.encode("new-pass")).thenReturn("encoded-new-pass");
         when(userOutPutPort.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
