@@ -41,11 +41,11 @@ class OtpPersistenceAdapterTest {
 
     @Test
     void findByEmailAndType_shouldReturnOptionalDomain() {
-        OtpEntity entity = OtpEntity.builder().email("john@example.com").type(OtpType.FORGOT_PASSWORD).build();
-        when(otpRepository.findByEmailAndType("john@example.com", OtpType.FORGOT_PASSWORD))
+        OtpEntity entity = OtpEntity.builder().email("john@example.com").type(OtpType.PASSWORD_RESET).build();
+        when(otpRepository.findByEmailAndType("john@example.com", OtpType.PASSWORD_RESET))
                 .thenReturn(Optional.of(entity));
         when(otpMapper.toDomain(entity)).thenReturn(OtpDetails.builder().email("john@example.com").build());
 
-        assertTrue(adapter.findByEmailAndType("john@example.com", OtpType.FORGOT_PASSWORD.name()).isPresent());
+        assertTrue(adapter.findByEmailAndType("john@example.com", OtpType.PASSWORD_RESET.name()).isPresent());
     }
 }
