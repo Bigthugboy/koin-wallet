@@ -29,8 +29,8 @@ public class WalletService implements WalletUseCase {
     private final TransactionOutPutPort transactionOutPutPort;
 
     @Override
-    public Wallet createWallet(String userId) throws WalletManagementException {
-        if(StringUtils.isBlank(userId) || StringUtils.isEmpty(userId)) {
+    public Wallet createWallet(Long userId) throws WalletManagementException {
+        if(userId == null) {
             throw new WalletManagementException(ErrorMessages.USER_ID_IS_REQUIRED);
         }
         if (walletOutPutPort.findByUserId(userId).isPresent()) {
@@ -42,8 +42,8 @@ public class WalletService implements WalletUseCase {
 
     @Override
     @Transactional
-    public void fundWallet(String userId, BigDecimal amount, String reference) throws WalletManagementException {
-        if(StringUtils.isBlank(userId) || StringUtils.isEmpty(userId)) {
+    public void fundWallet(Long userId, BigDecimal amount, String reference) throws WalletManagementException {
+        if(userId == null) {
             throw new WalletManagementException(ErrorMessages.USER_ID_IS_REQUIRED);
         }
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -57,8 +57,8 @@ public class WalletService implements WalletUseCase {
     }
 
     @Override
-    public Wallet getWalletBalance(String userId) throws WalletManagementException {
-        if (StringUtils.isBlank(userId) || StringUtils.isEmpty(userId)) {
+    public Wallet getWalletBalance(Long userId) throws WalletManagementException {
+        if (userId == null) {
             throw new WalletManagementException(ErrorMessages.USER_ID_IS_REQUIRED);
         }
         return walletOutPutPort.findByUserId(userId)
@@ -66,8 +66,8 @@ public class WalletService implements WalletUseCase {
     }
 
     @Override
-    public List<Transaction> getTransactionHistory(String userId) throws WalletManagementException {
-        if (StringUtils.isBlank(userId) || StringUtils.isEmpty(userId)) {
+    public List<Transaction> getTransactionHistory(Long userId) throws WalletManagementException {
+        if (userId == null) {
             throw new WalletManagementException(ErrorMessages.USER_ID_IS_REQUIRED);
         }
         return transactionOutPutPort.findByUserId(userId);
@@ -75,16 +75,15 @@ public class WalletService implements WalletUseCase {
 
 
 
-    private Wallet getWalletAndUpdateWallet(String userId, BigDecimal amount) throws WalletManagementException {
+    private Wallet getWalletAndUpdateWallet(Long userId, BigDecimal amount) throws WalletManagementException {
         Wallet wallet = walletOutPutPort.findByUserId(userId).orElseThrow(() -> new WalletManagementException(ErrorMessages.WALLET_NOT_FOUND));
         wallet.setBalance(wallet.getBalance().add(amount));
         wallet.setDateUpdate(LocalDateTime.now());
         return walletOutPutPort.save(wallet);
     }
 
-    private static Transaction buildFundWalletTransaction(String userId, BigDecimal amount, String reference, Wallet wallet) {
+    private static Transaction buildFundWalletTransaction(Long userId, BigDecimal amount, String reference, Wallet wallet) {
         return Transaction.builder()
-                .transactionId(UUID.randomUUID().toString())
                 .userId(userId)
                 .walletId(wallet.getWalletId())
                 .type(TransactionType.CREDIT)
@@ -94,7 +93,7 @@ public class WalletService implements WalletUseCase {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
-    private static Wallet buildWalletDetails(String userId) {
+    private static Wallet buildWalletDetails(Long userId) {
         return Wallet.builder()
                 .userId(userId)
                 .balance(BigDecimal.ZERO)
