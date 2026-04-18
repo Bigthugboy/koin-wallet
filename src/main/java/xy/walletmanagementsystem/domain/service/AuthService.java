@@ -62,8 +62,8 @@ public class AuthService implements AuthUseCase {
         user.setStatus(AccountStatus.ACTIVE);
         user.setRole(UserRole.USER);
         user.setEmailVerified(true);
-        user.setCreatedDate(LocalDateTime.now());
-        user.setUpdatedDate(LocalDateTime.now());
+        user.setDateCreated(LocalDateTime.now());
+        user.setDateUpdate(LocalDateTime.now());
         return userOutPutPort.save(user);
     }
 
@@ -119,6 +119,7 @@ public class AuthService implements AuthUseCase {
                 throw new WalletManagementException(ErrorMessages.USER_NOT_FOUND);
             }
             user.get().setPasswordHash(passwordEncoder.encode(newPassword));
+            user.get().setDateUpdate(LocalDateTime.now());
             userOutPutPort.save(user.get());
             sendPasswordResetSuccessEmail(email);
             log.info("Password reset successful for user {}", email);
