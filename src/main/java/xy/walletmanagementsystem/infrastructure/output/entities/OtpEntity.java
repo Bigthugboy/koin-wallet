@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 @Builder
 public class OtpEntity {
     @Id
-    @UuidGenerator
+    @GeneratedValue(strategy = GenerationType.UUID)
     private Long id;
 
     @Column(nullable = false)
