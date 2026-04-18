@@ -60,7 +60,7 @@ public class LoanService implements LoanUseCase {
             throw new WalletManagementException(ErrorMessages.LOAN_STATUS_IS_NOT_PENDING);
         }
         loan.setStatus(LoanStatus.APPROVED);
-        loan.setUpdatedDate(LocalDateTime.now());
+        loan.setDateUpdate(LocalDateTime.now());
         Loan savedLoan = loanOutPutPort.save(loan);
         notifyLoanUser(savedLoan.getUserId(), "Your loan has been approved.");
         return savedLoan;
@@ -162,8 +162,8 @@ public class LoanService implements LoanUseCase {
                 .durationInDays(durationInDays)
                 .status(LoanStatus.PENDING)
                 .repaymentSchedule("[]") // Placeholder for JSON schedule
-                .createdDate(LocalDateTime.now())
-                .updatedDate(LocalDateTime.now())
+                .dateCreated(LocalDateTime.now())
+                .dateUpdate(LocalDateTime.now())
                 .build();
     }
 
@@ -180,13 +180,13 @@ public class LoanService implements LoanUseCase {
     }
     private void updateLoanStatusForRepayment(Loan loan) {
         loan.setStatus(LoanStatus.REPAID);
-        loan.setUpdatedDate(LocalDateTime.now());
+        loan.setDateUpdate(LocalDateTime.now());
         loanOutPutPort.save(loan);
     }
 
     private void updateWalletForLoanRepayment(BigDecimal amount, Wallet wallet) {
         wallet.setBalance(wallet.getBalance().subtract(amount));
-        wallet.setUpdatedDate(LocalDateTime.now());
+        wallet.setDateUpdate(LocalDateTime.now());
         walletOutPutPort.save(wallet);
     }
 
@@ -217,14 +217,16 @@ public class LoanService implements LoanUseCase {
     }
 
     private Loan updateLoan(Loan loan) {
+        LocalDateTime now = LocalDateTime.now();
         loan.setStatus(LoanStatus.DISBURSED);
-        loan.setUpdatedDate(LocalDateTime.now());
+        loan.setDateDisbursed(now);
+        loan.setDateUpdate(now);
         return loanOutPutPort.save(loan);
     }
 
     private void updateWallet(Wallet wallet, Loan loan) {
         wallet.setBalance(wallet.getBalance().add(loan.getAmount()));
-        wallet.setUpdatedDate(LocalDateTime.now());
+        wallet.setDateUpdate(LocalDateTime.now());
         walletOutPutPort.save(wallet);
     }
 
