@@ -25,7 +25,7 @@ public class WalletEntity {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String userId;
+    private Long userId;
 
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal balance;
