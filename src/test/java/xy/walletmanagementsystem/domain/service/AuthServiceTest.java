@@ -67,7 +67,7 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() {
         user = User.builder()
-                .id("user-1")
+                .id(1L)
                 .fullName("John Doe")
                 .email("john@example.com")
                 .phoneNumber("08012345678")
@@ -80,7 +80,7 @@ class AuthServiceTest {
         when(passwordEncoder.encode("plain-pass")).thenReturn("encoded-pass");
         when(userOutPutPort.save(any(User.class))).thenAnswer(invocation -> {
             User saved = invocation.getArgument(0);
-            saved.setId("user-1");
+            saved.setId(1L);
             return saved;
         });
 
@@ -88,7 +88,7 @@ class AuthServiceTest {
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userOutPutPort).save(userCaptor.capture());
-        verify(walletUseCase).createWallet("user-1");
+        verify(walletUseCase).createWallet(eq(1L));
         User persisted = userCaptor.getValue();
         assertEquals("encoded-pass", persisted.getPasswordHash());
         assertEquals(AccountStatus.ACTIVE, persisted.getStatus());
@@ -157,10 +157,10 @@ class AuthServiceTest {
     @Test
     void logout_shouldBlacklistTokenWhenValid() throws Exception {
         Date expiration = new Date(System.currentTimeMillis() + 60_000);
-        when(userOutPutPort.findById("user-1")).thenReturn(Optional.of(user));
+        when(userOutPutPort.findById(1L)).thenReturn(Optional.of(user));
         when(jwtProvider.getExpirationFromToken("token")).thenReturn(expiration);
 
-        authService.logout("user-1", "token");
+        authService.logout(1L, "token");
 
         verify(tokenBlacklistOutPutPort).blacklistToken(eq("token"), any(Long.class));
     }
