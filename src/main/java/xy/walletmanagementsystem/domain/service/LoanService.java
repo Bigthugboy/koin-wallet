@@ -13,6 +13,7 @@ import xy.walletmanagementsystem.applicationPort.output.WalletOutPutPort;
 import xy.walletmanagementsystem.domain.enums.LoanStatus;
 import xy.walletmanagementsystem.domain.enums.TransactionStatus;
 import xy.walletmanagementsystem.domain.enums.TransactionType;
+import xy.walletmanagementsystem.domain.exception.IdempotencyException;
 import xy.walletmanagementsystem.domain.exception.WalletManagementException;
 import xy.walletmanagementsystem.domain.model.Loan;
 import xy.walletmanagementsystem.domain.model.Transaction;
@@ -82,13 +83,8 @@ public class LoanService implements LoanUseCase {
         Wallet wallet = walletOutPutPort.findByUserId(loan.getUserId())
                 .orElseThrow(() -> new WalletManagementException(ErrorMessages.WALLET_NOT_FOUND));
 
-        // Update balance
         updateWallet(wallet, loan);
-
-        // Update loan status
         Loan savedLoan = updateLoan(loan);
-
-        // Log transaction
         saveLoanTransaction(loan, wallet);
         notifyLoanUser(savedLoan.getUserId(), "Your loan has been disbursed to your wallet.");
         return savedLoan;
@@ -97,13 +93,18 @@ public class LoanService implements LoanUseCase {
 
     @Override
     @Transactional
-    public void repayLoan(String loanId, BigDecimal amount) throws WalletManagementException {
+    public void repayLoan(String loanId, BigDecimal amount, String idempotencyKey) throws WalletManagementException {
         if(StringUtils.isBlank(loanId)){
             throw new WalletManagementException(ErrorMessages.LOAN_ID_IS_REQUIRED);
         }
         if(amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new WalletManagementException(ErrorMessages.REPAYMENT_AMOUNT_MUST_BE_POSITIVE);
         }
+
+        if (StringUtils.isNotBlank(idempotencyKey) && transactionOutPutPort.findByReference(idempotencyKey).isPresent()) {
+            throw new IdempotencyException("Repayment with key " + idempotencyKey + " already processed");
+        }
+
         Loan loan = loanOutPutPort.findById(loanId)
                 .orElseThrow(() -> new WalletManagementException(ErrorMessages.LOAN_NOT_FOUND));
 
@@ -117,16 +118,9 @@ public class LoanService implements LoanUseCase {
         if (wallet.getBalance().compareTo(amount) < 0) {
             throw new WalletManagementException(ErrorMessages.INSUFFICIENT_FUNDS);
         }
-
-        // Deduct from wallet
         updateWalletForLoanRepayment(amount, wallet);
-
-        // Update loan - for simplicity, if amount >= loan amount + interest, mark as repaid
-        // In a real system, we'd track remaining balance
         updateLoanStatusForRepayment(loan);
-
-        // Log transaction
-         saveLoanRepaymentTransaction(amount, loan, wallet);
+        saveLoanRepaymentTransaction(amount, loan, wallet, idempotencyKey);
         notifyLoanUser(loan.getUserId(), "Loan repayment of " + amount + " was successful.");
 
     }
@@ -158,10 +152,10 @@ public class LoanService implements LoanUseCase {
         return Loan.builder()
                 .userId(userId)
                 .amount(amount)
-                .interestRate(new BigDecimal("5.0")) // Default interest rate
+                .interestRate(new BigDecimal("5.0"))
                 .durationInDays(durationInDays)
                 .status(LoanStatus.PENDING)
-                .repaymentSchedule("[]") // Placeholder for JSON schedule
+                .repaymentSchedule("[]")
                 .dateCreated(LocalDateTime.now())
                 .dateUpdate(LocalDateTime.now())
                 .build();
@@ -190,14 +184,15 @@ public class LoanService implements LoanUseCase {
         walletOutPutPort.save(wallet);
     }
 
-    private void  saveLoanRepaymentTransaction(BigDecimal amount, Loan loan, Wallet wallet) {
+    private void  saveLoanRepaymentTransaction(BigDecimal amount, Loan loan, Wallet wallet, String idempotencyKey) {
+        String reference = StringUtils.isNotBlank(idempotencyKey) ? idempotencyKey : "REPAY-" + UUID.randomUUID().toString().substring(0, 8);
         Transaction transaction = Transaction.builder()
                 .userId(loan.getUserId())
                 .walletId(wallet.getWalletId())
                 .type(TransactionType.REPAYMENT)
                 .amount(amount)
                 .status(TransactionStatus.SUCCESSFUL)
-                .referenceNumber("REPAY-" + UUID.randomUUID().toString().substring(0, 8))
+                .referenceNumber(reference)
                 .timestamp(LocalDateTime.now())
                 .build();
         transactionOutPutPort.save(transaction);
