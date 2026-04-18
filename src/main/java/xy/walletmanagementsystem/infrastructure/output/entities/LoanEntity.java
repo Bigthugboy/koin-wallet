@@ -41,6 +41,7 @@ public class LoanEntity {
     @Column(columnDefinition = "TEXT")
     private String repaymentSchedule;
 
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedDate;
+    private LocalDateTime dateDisbursed;
+    private LocalDateTime dateCreated;
+    private LocalDateTime dateUpdate;
 }
