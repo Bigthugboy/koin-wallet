@@ -9,7 +9,7 @@ public interface UserOutPutPort {
 
     Optional<User> findByEmail(String email);
 
-    Optional<User> findById(String userId);
+    Optional<User> findById(Long userId);
 
     boolean existsByEmail(String email);
 }
