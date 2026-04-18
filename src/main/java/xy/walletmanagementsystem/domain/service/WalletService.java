@@ -74,7 +74,7 @@ public class WalletService implements WalletUseCase {
     private Wallet getWalletAndUpdateWallet(String userId, BigDecimal amount) throws WalletManagementException {
         Wallet wallet = walletOutPutPort.findByUserId(userId).orElseThrow(() -> new WalletManagementException(ErrorMessages.WALLET_NOT_FOUND));
         wallet.setBalance(wallet.getBalance().add(amount));
-        wallet.setUpdatedDate(LocalDateTime.now());
+        wallet.setDateUpdate(LocalDateTime.now());
         return walletOutPutPort.save(wallet);
     }
 
@@ -96,8 +96,8 @@ public class WalletService implements WalletUseCase {
                 .balance(BigDecimal.ZERO)
                 .currency("NGN")
                 .status(WalletStatus.ACTIVE)
-                .createdDate(LocalDateTime.now())
-                .updatedDate(LocalDateTime.now())
+                .dateCreated(LocalDateTime.now())
+                .dateUpdate(LocalDateTime.now())
                 .build();
     }
 
