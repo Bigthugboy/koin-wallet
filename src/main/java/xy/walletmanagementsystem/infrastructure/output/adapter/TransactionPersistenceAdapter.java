@@ -46,8 +46,8 @@ public class TransactionPersistenceAdapter implements TransactionOutPutPort {
     }
 
     @Override
-    public Optional<Transaction> findByReferenceNumber(String referenceNumber) {
-        return transactionRepository.findByReferenceNumber(referenceNumber)
+    public Optional<Transaction> findByReference(String reference) {
+        return transactionRepository.findByReferenceNumber(reference)
                 .map(transactionMapper::toDomain);
     }
 }
