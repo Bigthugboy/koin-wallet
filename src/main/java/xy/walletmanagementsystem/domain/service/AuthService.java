@@ -96,7 +96,7 @@ public class AuthService implements AuthUseCase {
     public void forgetPassword(String email) throws WalletManagementException {
         validateEmailFormat(email);
         if (userOutPutPort.existsByEmail(email)) {
-            otpUseCase.generateOtp(email, OtpType.FORGOT_PASSWORD);
+            otpUseCase.generateOtp(email, OtpType.PASSWORD_RESET);
             log.info("Forget password OTP triggered for {}", email);
         } else {
             throw new WalletManagementException(ErrorMessages.USER_NOT_FOUND);
@@ -112,7 +112,7 @@ public class AuthService implements AuthUseCase {
         if (StringUtils.isBlank(newPassword)) {
             throw new WalletManagementException(ErrorMessages.NEW_PASSWORD_IS_REQUIRED);
         }
-        boolean isVerified = otpUseCase.verifyOtp(email, otp, OtpType.FORGOT_PASSWORD);
+        boolean isVerified = otpUseCase.verifyOtp(email, otp, OtpType.PASSWORD_RESET);
         if (isVerified) {
             Optional<User> user = userOutPutPort.findByEmail(email);
             if (user.isEmpty()){
