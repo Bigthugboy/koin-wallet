@@ -22,9 +22,9 @@ public class LoanScheduler {
     private final NotificationOutPutPort notificationOutPutPort;
     private final UserOutPutPort userOutPutPort;
 
-    /**
-     * Runs daily at 8 AM to send reminders for loans due in 3 days.
-     */
+
+     // Runs daily at 8 AM to send reminders for loans due in 3 days.
+
     @Scheduled(cron = "0 0 8 * * ?")
     public void sendRepaymentReminders() {
         log.info("Running loan repayment reminders job...");
@@ -47,9 +47,9 @@ public class LoanScheduler {
         }
     }
 
-    /**
-     * Runs daily at midnight to mark overdue loans.
-     */
+
+      //Runs daily at midnight to mark overdue loans.
+
     @Scheduled(cron = "0 0 0 * * ?")
     public void markOverdueLoans() {
         log.info("Running overdue loans job...");
