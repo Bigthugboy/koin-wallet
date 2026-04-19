@@ -3,6 +3,7 @@ package xy.walletmanagementsystem.infrastructure.output.adapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import xy.walletmanagementsystem.applicationPort.output.KycOutPutPort;
+import xy.walletmanagementsystem.domain.enums.KycVerificationStatus;
 import xy.walletmanagementsystem.domain.model.Kyc;
 import xy.walletmanagementsystem.infrastructure.input.rest.message.ErrorMessages;
 import xy.walletmanagementsystem.infrastructure.output.entities.KycEntity;
@@ -42,4 +43,13 @@ public class KycPersistenceAdapter implements KycOutPutPort {
                 .map(kycMapper::toDomain)
                 .orElseThrow(() -> new RuntimeException(ErrorMessages.KYC_NOT_FOUND));
     }
+
+    @Override
+    public boolean isVerified(Long userId) {
+        return kycRepository.findByUserId(userId)
+                .map(kycEntity -> KycVerificationStatus.VERIFIED.equals(kycEntity.getStatus()))
+                .orElse(false);
+    }
+
+
 }
