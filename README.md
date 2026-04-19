@@ -58,6 +58,13 @@ Please view the comprehensive design documentation here:
    mvn spring-boot:run
    ```
 
+## Database Scripts & Test Data
+The application relies on Hibernate's `ddl-auto=update` to manage the schema during runtime, but explicit database scripts are provided for manual setup and testing:
+- **Schema Script**: [`database_scripts/schema.sql`](database_scripts/schema.sql)
+- **Sample Test Data**: [`database_scripts/data.sql`](database_scripts/data.sql)
+
+To load the sample data, run the `data.sql` script against your PostgreSQL instance. It includes an Admin user and a Standard user (both with password: `password123`), pre-funded wallets, KYC records, and sample loan transactions.
+
 ## API Documentation
 Once the application is running, you can access the Swagger UI at:
 `http://localhost:8080/swagger-ui/index.html`
@@ -92,6 +99,3 @@ The application requires the following environment variables. Default values are
 - **JWT Authentication**: Stateless security with role-based access control.
 - **Validation**: Strict input validation using Jakarta Validation.
 - **Exception Handling**: Centralized global exception handler for consistent API responses.
-
-## License
-MIT
