@@ -112,14 +112,12 @@ class AuthServiceTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(authentication);
         when(userOutPutPort.findByEmail("john@example.com")).thenReturn(Optional.of(user));
         when(jwtProvider.generateAccessToken(user)).thenReturn("access-token");
-        when(jwtProvider.generateRefreshToken(user)).thenReturn("refresh-token");
         Date expiration = Date.from(LocalDateTime.now().plusHours(1).atZone(ZoneId.systemDefault()).toInstant());
         when(jwtProvider.getExpirationFromToken("access-token")).thenReturn(expiration);
 
         AuthResponse response = authService.login("john@example.com", "plain-pass");
 
         assertEquals("access-token", response.getAccessToken());
-        assertEquals("refresh-token", response.getRefreshToken());
         assertEquals("Bearer", response.getType());
     }
 
