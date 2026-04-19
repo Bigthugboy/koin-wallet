@@ -9,7 +9,8 @@ import lombok.*;
 @NoArgsConstructor
 public class UpdateUserRequest {
     private String fullName;
+    @jakarta.validation.constraints.Pattern(regexp = "^(\\+234|0)[789]\\d{9}$", message = "Invalid phone number format")
     private String phoneNumber;
-    private String email;
+
 
 }
