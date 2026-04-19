@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class AuthenticationResponse {
     private String accessToken;
-    private String refreshToken;
     @Builder.Default
     private String type = "Bearer";
     private LocalDateTime issuedAt;
