@@ -92,7 +92,7 @@ public class SwaggerUiConstants {
     public static final String TRANSACTION_TAG_DESCRIPTION = "Endpoints for listing and fetching transactions";
     
     public static final String GET_ALL_TRANSACTIONS_SUMMARY = "List all transactions (Admin view simulation)";
-    public static final String GET_ALL_TRANSACTIONS_DESCRIPTION = "Retrieves a global list of all transactions in the system. Simulated admin view.";
+    public static final String GET_ALL_TRANSACTIONS_DESCRIPTION = "Retrieves a global list of all transactions in the system. ";
     
     public static final String GET_TRANSACTION_SUMMARY = "Fetch a single transaction by ID";
     public static final String GET_TRANSACTION_DESCRIPTION = "Retrieves details of a specific transaction by its unique ID.";
