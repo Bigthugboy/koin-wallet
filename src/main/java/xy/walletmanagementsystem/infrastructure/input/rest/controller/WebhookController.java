@@ -11,13 +11,14 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import xy.walletmanagementsystem.applicationPort.input.WebhookUseCase;
+import xy.walletmanagementsystem.domain.messages.UrlConstant;
 import xy.walletmanagementsystem.infrastructure.input.rest.message.SwaggerUiConstants;
 
 import static xy.walletmanagementsystem.domain.messages.ConstantMessages.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/webhooks")
+@RequestMapping(UrlConstant.WEBHOOK_URL)
 @RequiredArgsConstructor
 @Tag(name = SwaggerUiConstants.WEBHOOK_TAG_NAME, description = SwaggerUiConstants.WEBHOOK_TAG_DESCRIPTION)
 public class WebhookController {
