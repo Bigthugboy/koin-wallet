@@ -21,6 +21,9 @@ public class KycPersistenceAdapter implements KycOutPutPort {
     @Override
     public Kyc save(Kyc kyc) {
         KycEntity entity = kycMapper.toEntity(kyc);
+        if (entity.getId() == null) {
+            entity.setId(java.util.UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE);
+        }
         KycEntity savedEntity = kycRepository.save(entity);
         return kycMapper.toDomain(savedEntity);
     }
