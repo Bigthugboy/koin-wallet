@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import xy.walletmanagementsystem.applicationPort.input.UserUseCase;
+import xy.walletmanagementsystem.applicationPort.output.KycOutPutPort;
 import xy.walletmanagementsystem.applicationPort.output.UserOutPutPort;
 import xy.walletmanagementsystem.domain.exception.WalletManagementException;
 import xy.walletmanagementsystem.domain.model.User;
@@ -18,6 +19,7 @@ import java.util.logging.ErrorManager;
 public class UserService implements UserUseCase {
 
     private final UserOutPutPort userOutPutPort;
+    private final KycOutPutPort kycOutPutPort;
 
     @Override
     public User createUser(User user) {
@@ -45,6 +47,9 @@ public class UserService implements UserUseCase {
         if (userId == null){
             throw new WalletManagementException(ErrorMessages.USER_ID_IS_REQUIRED);
         }
-        return userOutPutPort.findById(userId);
+        boolean isVerified = kycOutPutPort.isVerified(userId);
+        Optional<User> user = userOutPutPort.findById(userId);
+        user.get().setKycVerified(isVerified);
+        return user;
     }
 }
