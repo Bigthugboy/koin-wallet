@@ -12,4 +12,6 @@ public interface UserOutPutPort {
     Optional<User> findById(Long userId);
 
     boolean existsByEmail(String email);
+
+    boolean existsByPhoneNumber(String phoneNumber);
 }
