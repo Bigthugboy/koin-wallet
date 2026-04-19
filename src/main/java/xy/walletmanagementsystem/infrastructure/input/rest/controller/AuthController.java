@@ -29,6 +29,8 @@ import xy.walletmanagementsystem.infrastructure.input.rest.data.response.Authent
 import xy.walletmanagementsystem.infrastructure.input.rest.mapper.RestMapper;
 import xy.walletmanagementsystem.infrastructure.output.config.security.CustomUserDetails;
 
+import static xy.walletmanagementsystem.domain.messages.ConstantMessages.*;
+
 @RestController
 @RequestMapping(UrlConstant.AUTH_URL)
 @RequiredArgsConstructor
@@ -43,22 +45,22 @@ public class AuthController {
     @Operation(summary = SwaggerUiConstants.SIGNUP_SUMMARY, description = SwaggerUiConstants.SIGNUP_DESCRIPTION)
     public ResponseEntity<ApiResponse<UserResponse>> signup(@Valid @RequestBody SignupRequest request) throws WalletManagementException {
         User user = restMapper.toUser(request);
-        User savedUser = authUseCase.signup(user, request.getPassword());
-        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(savedUser), "Registration successful"));
+        User savedUser = authUseCase.signup(user, request.getPassword(),request.isAdmin());
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(savedUser), REGISTRATION_SUCCESSFUL));
     }
 
     @PostMapping("/login")
     @Operation(summary = SwaggerUiConstants.LOGIN_SUMMARY, description = SwaggerUiConstants.LOGIN_DESCRIPTION)
     public ResponseEntity<ApiResponse<AuthenticationResponse>> login(@Valid @RequestBody LoginRequest request) throws WalletManagementException {
         AuthResponse response = authUseCase.login(request.getEmail(), request.getPassword());
-        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(response), "Login successful"));
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(response), LOGIN_SUCCESSFUL));
     }
 
     @PostMapping("/forgot-password")
     @Operation(summary = SwaggerUiConstants.FORGOT_PASSWORD_SUMMARY, description = SwaggerUiConstants.FORGOT_PASSWORD_DESCRIPTION)
     public ResponseEntity<ApiResponse<String>> forgotPassword(@RequestParam String email) throws WalletManagementException {
         authUseCase.forgetPassword(email);
-        return ResponseEntity.ok(ApiResponse.ok("OTP sent to your email"));
+        return ResponseEntity.ok(ApiResponse.ok(OTP_SENT));
     }
 
     @PostMapping("/reset-password")
