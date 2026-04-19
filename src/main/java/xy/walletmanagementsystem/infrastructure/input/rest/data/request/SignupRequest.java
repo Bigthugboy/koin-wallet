@@ -20,9 +20,11 @@ public class SignupRequest {
     private String email;
 
     @NotBlank(message = "Phone number is required")
-    @jakarta.validation.constraints.Pattern(regexp = "^(\\+234|0)[789]\\d{9}$", message = "Invalid Nigerian phone number format")
+    @jakarta.validation.constraints.Pattern(regexp = "^(\\+234|0)[789]\\d{9}$", message = "Invalid  phone number format")
     private String phoneNumber;
 
     @NotBlank(message = "Password is required")
     private String password;
+
+    private boolean admin = false;
 }
