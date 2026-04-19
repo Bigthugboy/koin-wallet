@@ -81,7 +81,7 @@ public class OtpService implements OtpUseCase {
             case RESEND_OTP -> RESEND_OTP;
             default -> OTP_CODE;
         };
-        String body = OTP_BODY + otpDetails.getOtp();
+        String body = String.format(OTP_BODY, otpDetails.getOtp());
         emailOutPutPort.sendEmail(EmailObject.builder()
                 .recipient(otpDetails.getEmail())
                 .subject(subject)

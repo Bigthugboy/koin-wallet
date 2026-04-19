@@ -14,7 +14,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.UuidGenerator;
 import xy.walletmanagementsystem.domain.enums.OtpType;
 
 import java.time.LocalDateTime;
@@ -35,7 +34,6 @@ import java.time.LocalDateTime;
 @Builder
 public class OtpEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column(nullable = false)

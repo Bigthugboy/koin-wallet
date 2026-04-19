@@ -21,6 +21,9 @@ public class TransactionPersistenceAdapter implements TransactionOutPutPort {
     @Override
     public Transaction save(Transaction transaction) {
         TransactionEntity entity = transactionMapper.toEntity(transaction);
+        if (entity.getId() == null) {
+            entity.setId(java.util.UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE);
+        }
         TransactionEntity savedEntity = transactionRepository.save(entity);
         return transactionMapper.toDomain(savedEntity);
     }

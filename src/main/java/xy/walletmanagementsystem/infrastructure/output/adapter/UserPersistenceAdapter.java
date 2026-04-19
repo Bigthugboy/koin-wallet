@@ -31,6 +31,9 @@ public class UserPersistenceAdapter implements UserOutPutPort {
     @Override
     public User save(User user) {
         UserEntity entity = userMapper.toEntity(user);
+        if (entity.getId() == null) {
+            entity.setId(java.util.UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE);
+        }
         UserEntity savedEntity = userRepository.save(entity);
         return userMapper.toDomain(savedEntity);
     }

@@ -129,7 +129,7 @@ public class LoanService implements LoanUseCase {
 
     @Override
     @Transactional
-    public void repayLoan(Long loanId, BigDecimal amount, String idempotencyKey) throws WalletManagementException {
+    public Loan repayLoan(Long loanId, BigDecimal amount, String idempotencyKey) throws WalletManagementException {
         validateLoanId(loanId);
         validateAmount(amount);
         validateKey(idempotencyKey);
@@ -149,8 +149,9 @@ public class LoanService implements LoanUseCase {
         updateWalletForLoanRepayment(amount, wallet);
         updateLoanStatusForRepayment(loan, amount);
         saveLoanRepaymentTransaction(amount, loan, wallet, idempotencyKey);
-        notifyLoanUser(loan.getUserId(), LOAN_REPAYMENT_SUCCESS + amount);
-
+        notifyLoanUser(loan.getUserId(), String.format(LOAN_REPAYMENT_SUCCESS, amount, loan.getBalanceDue()));
+        
+        return loan;
     }
 
     private void validateKey(String idempotencyKey) throws IdempotencyException {

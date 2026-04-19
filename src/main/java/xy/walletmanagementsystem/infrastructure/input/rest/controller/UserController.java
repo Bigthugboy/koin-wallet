@@ -36,12 +36,14 @@ public class UserController {
 
     private final UserUseCase userUseCase;
     private final RestMapper restMapper;
+    private final xy.walletmanagementsystem.applicationPort.input.KycUseCase kycUseCase;
 
     @GetMapping("/profile")
     @Operation(summary = SwaggerUiConstants.GET_PROFILE_SUMMARY, description = SwaggerUiConstants.GET_PROFILE_DESCRIPTION)
     public ResponseEntity<ApiResponse<UserResponse>> getProfile(@AuthenticationPrincipal CustomUserDetails userDetails) throws WalletManagementException {
         Optional<User> user = userUseCase.getUserDetails(userDetails.getId());
-        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(user.get()), PROFILE_RETRIEVED));
+        UserResponse response = restMapper.toResponse(user.get());
+        return ResponseEntity.ok(ApiResponse.success(response, PROFILE_RETRIEVED));
     }
 
     @PutMapping("/profile")

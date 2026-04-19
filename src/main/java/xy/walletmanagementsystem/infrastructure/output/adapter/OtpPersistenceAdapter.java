@@ -20,6 +20,9 @@ public class OtpPersistenceAdapter implements OtpOutPutPort {
     @Override
     public OtpDetails save(OtpDetails otpDetails) {
         OtpEntity entity = otpMapper.toEntity(otpDetails);
+        if (entity.getId() == null) {
+            entity.setId(java.util.UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE);
+        }
         OtpEntity savedEntity = otpRepository.save(entity);
         return otpMapper.toDomain(savedEntity);
     }
