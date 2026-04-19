@@ -29,7 +29,6 @@ import java.time.LocalDateTime;
 @Builder
 public class LoanEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column(nullable = false)
