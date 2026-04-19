@@ -46,4 +46,14 @@ public class ErrorMessages {
     public static final String INVALID_OTP = "Invalid OTP.";
     public static final String EMAIL_AND_TYPE_REQUIRED = "Email and OTP type are required.";
     public static final String OTP_TYPE_IS_REQUIRED = "OTP type is required.";
+    public static final String USER_PHONE_NUMBER_ALREADY_EXISTS = "phone number is already associated with another user.";
+    public static final String TRANSACTION_ALREADY_EXISTS = "Transaction already exists";
+    public static final String LOAN_PAYMENT_EXCEED_LOAN_BALANCE = "repayment amount exceed loan balance  ";
+    public static final String USER_KYC_NOT_FOUND = "user kyc not found";
+    public static final String KYC_NOT_VERIFIED = "Kyc not verified";
+    public static final String ACCOUNT_SUSPENDED = "Account suspended, Cannot perform this action";
+    public static final String  REFERENCE_IS_REQUIRED = "Reference is required";
+public static final String AMOUNT_IS_REQUIRED = "amount is required";
+public static final String INVALID_EMAIL_FORMAT = "invalid email provided";
+public static final String TRANSACTION_REFERENCE_NOT_FOUND = "Transaction reference not found";
 }
