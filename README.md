@@ -13,6 +13,17 @@ A simple fintech backend simulation built with Java and Spring Boot. This system
 - **Scheduled Jobs**: Automated loan repayment reminders and defaulting of overdue loans.
 - **API Documentation**: Integrated Swagger/OpenAPI documentation.
 
+## Architecture & System Design
+
+The system follows a strict **Hexagonal Architecture** (Ports and Adapters) pattern. To showcase the intricate request flows, sequence diagrams and system architecture graphs have been documented.
+
+Please view the comprehensive design documentation here:
+- [System Architecture](docs/system_architecture.md)
+- [Auth Service Design](docs/auth_service_design.md)
+- [User & KYC Service Design](docs/user_kyc_service_design.md)
+- [Wallet & Transaction Service Design](docs/wallet_transaction_service_design.md)
+- [Loan Service Design](docs/loan_service_design.md)
+
 ## Tech Stack
 
 - **Java 17**
