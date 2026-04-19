@@ -10,4 +10,6 @@ public interface KycOutPutPort {
     Optional<Kyc> findById(Long kycId);
 
     Kyc findByIdAndUserId(Long id, Long userId);
+
+    boolean isVerified(Long userId);
 }
