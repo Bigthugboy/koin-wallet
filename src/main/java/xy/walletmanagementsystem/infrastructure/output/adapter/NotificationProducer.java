@@ -3,6 +3,7 @@ package xy.walletmanagementsystem.infrastructure.output.adapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import xy.walletmanagementsystem.applicationPort.output.EmailOutPutPort;
 import xy.walletmanagementsystem.applicationPort.output.NotificationOutPutPort;
@@ -19,6 +20,7 @@ public class NotificationProducer implements NotificationOutPutPort {
     private final EmailOutPutPort emailOutPutPort;
 
     @Override
+    @Async
     public void sendLoanNotification(String email, String message) {
         log.info("Sending loan notification to {}: {}", email, message);
         emailOutPutPort.sendEmail(EmailObject.builder()
@@ -38,6 +40,7 @@ public class NotificationProducer implements NotificationOutPutPort {
     }
 
     @Override
+    @Async
     public void sendPaymentNotification(String email, String message) {
         log.info("Sending payment notification to {}: {}", email, message);
         emailOutPutPort.sendEmail(EmailObject.builder()
