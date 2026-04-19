@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
         @Index(name = "idx_loans_user_id", columnList = "userId"),
         @Index(name = "idx_loans_status", columnList = "status"),
         @Index(name = "idx_loans_idempotency_key", columnList = "idempotencyKey"),
-        @Index(name = "idx_loans_date_created", columnList = "dateCreated")
+
     }
 )
 @Getter
