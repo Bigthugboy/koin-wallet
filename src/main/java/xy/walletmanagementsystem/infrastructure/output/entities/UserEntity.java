@@ -10,7 +10,14 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users")
+@Table(
+    name = "users",
+    indexes = {
+        @Index(name = "idx_users_email", columnList = "email"),
+        @Index(name = "idx_users_phone_number", columnList = "phoneNumber"),
+        @Index(name = "idx_users_status", columnList = "status")
+    }
+)
 @Getter
 @Setter
 @AllArgsConstructor
@@ -18,7 +25,7 @@ import java.util.UUID;
 @Builder
 public class UserEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column(nullable = false)
