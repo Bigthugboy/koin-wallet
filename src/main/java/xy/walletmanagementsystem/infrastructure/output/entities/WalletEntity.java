@@ -13,7 +13,13 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "wallets")
+@Table(
+    name = "wallets",
+    indexes = {
+        @Index(name = "idx_wallets_user_id", columnList = "userId"),
+        @Index(name = "idx_wallets_status", columnList = "status")
+    }
+)
 @Getter
 @Setter
 @AllArgsConstructor
@@ -21,7 +27,7 @@ import java.time.LocalDateTime;
 @Builder
 public class WalletEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column(nullable = false, unique = true)
