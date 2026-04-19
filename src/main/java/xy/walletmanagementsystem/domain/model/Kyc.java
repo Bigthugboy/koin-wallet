@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import xy.walletmanagementsystem.domain.enums.KycStatus;
 import xy.walletmanagementsystem.domain.enums.KycVerificationStatus;
 
 import java.time.LocalDateTime;
@@ -16,11 +15,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class Kyc {
-    private String id;
-    private String userId;
+    private Long id;
+    private Long userId;
     private String bvn;
     private String nin;
-    private KycStatus kycStatus;
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedDate;
+    private KycVerificationStatus status;
+    private LocalDateTime dateCreated;
+    private LocalDateTime dateUpdate;
 }

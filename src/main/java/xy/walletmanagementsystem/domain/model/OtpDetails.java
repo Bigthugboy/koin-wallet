@@ -17,6 +17,6 @@ public class OtpDetails {
     private String email;
     private String otp;
     private OtpType type;
-    private LocalDateTime dateExpires;
+    private LocalDateTime expiryDate;
     private LocalDateTime dateCreated;
 }

@@ -3,6 +3,7 @@ package xy.walletmanagementsystem.infrastructure.output.adapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import xy.walletmanagementsystem.applicationPort.output.KycOutPutPort;
+import xy.walletmanagementsystem.domain.enums.KycVerificationStatus;
 import xy.walletmanagementsystem.domain.model.Kyc;
 import xy.walletmanagementsystem.infrastructure.input.rest.message.ErrorMessages;
 import xy.walletmanagementsystem.infrastructure.output.entities.KycEntity;
@@ -25,21 +26,30 @@ public class KycPersistenceAdapter implements KycOutPutPort {
     }
 
     @Override
-    public Optional<Kyc> findByUserId(String userId) {
+    public Optional<Kyc> findByUserId(Long userId) {
         return kycRepository.findByUserId(userId)
                 .map(kycMapper::toDomain);
     }
 
     @Override
-    public Optional<Kyc> findById(String kycId) {
+    public Optional<Kyc> findById(Long kycId) {
         return kycRepository.findById(kycId)
                 .map(kycMapper::toDomain);
     }
 
     @Override
-    public Kyc findByIdAndUserId(String id, String userId) {
+    public Kyc findByIdAndUserId(Long id, Long userId) {
         return kycRepository.findByIdAndUserId(id, userId)
                 .map(kycMapper::toDomain)
                 .orElseThrow(() -> new RuntimeException(ErrorMessages.KYC_NOT_FOUND));
     }
+
+    @Override
+    public boolean isVerified(Long userId) {
+        return kycRepository.findByUserId(userId)
+                .map(kycEntity -> KycVerificationStatus.VERIFIED.equals(kycEntity.getStatus()))
+                .orElse(false);
+    }
+
+
 }

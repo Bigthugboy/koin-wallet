@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 import xy.walletmanagementsystem.domain.enums.TransactionStatus;
 import xy.walletmanagementsystem.domain.enums.TransactionType;
 
@@ -13,7 +14,16 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "transactions")
+@Table(
+    name = "transactions",
+    indexes = {
+        @Index(name = "idx_transactions_user_id", columnList = "userId"),
+        @Index(name = "idx_transactions_wallet_id", columnList = "walletId"),
+        @Index(name = "idx_transactions_reference_number", columnList = "referenceNumber"),
+        @Index(name = "idx_transactions_status", columnList = "status"),
+
+    }
+)
 @Getter
 @Setter
 @AllArgsConstructor
@@ -21,14 +31,14 @@ import java.time.LocalDateTime;
 @Builder
 public class TransactionEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long id;
 
     @Column(nullable = false)
-    private String userId;
+    private Long userId;
 
     @Column(nullable = false)
-    private String walletId;
+    private Long walletId;
 
     @Enumerated(EnumType.STRING)
     private TransactionType type;

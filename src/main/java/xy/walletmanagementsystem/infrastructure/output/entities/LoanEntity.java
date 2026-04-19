@@ -6,13 +6,22 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 import xy.walletmanagementsystem.domain.enums.LoanStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "loans")
+@Table(
+    name = "loans",
+    indexes = {
+        @Index(name = "idx_loans_user_id", columnList = "userId"),
+        @Index(name = "idx_loans_status", columnList = "status"),
+        @Index(name = "idx_loans_idempotency_key", columnList = "idempotencyKey"),
+
+    }
+)
 @Getter
 @Setter
 @AllArgsConstructor
@@ -20,11 +29,11 @@ import java.time.LocalDateTime;
 @Builder
 public class LoanEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long id;
 
     @Column(nullable = false)
-    private String userId;
+    private Long userId;
 
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;
@@ -41,6 +50,13 @@ public class LoanEntity {
     @Column(columnDefinition = "TEXT")
     private String repaymentSchedule;
 
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedDate;
+    @Column(precision = 19, scale = 2)
+    private BigDecimal balanceDue;
+
+    @Column(unique = true)
+    private String idempotencyKey;
+
+    private LocalDateTime dateDisbursed;
+    private LocalDateTime dateCreated;
+    private LocalDateTime dateUpdate;
 }

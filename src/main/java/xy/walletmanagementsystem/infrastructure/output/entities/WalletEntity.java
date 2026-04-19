@@ -6,13 +6,20 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 import xy.walletmanagementsystem.domain.enums.WalletStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "wallets")
+@Table(
+    name = "wallets",
+    indexes = {
+        @Index(name = "idx_wallets_user_id", columnList = "userId"),
+        @Index(name = "idx_wallets_status", columnList = "status")
+    }
+)
 @Getter
 @Setter
 @AllArgsConstructor
@@ -20,11 +27,11 @@ import java.time.LocalDateTime;
 @Builder
 public class WalletEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long id;
 
     @Column(nullable = false, unique = true)
-    private String userId;
+    private Long userId;
 
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal balance;
@@ -35,6 +42,6 @@ public class WalletEntity {
     @Enumerated(EnumType.STRING)
     private WalletStatus status;
 
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedDate;
+    private LocalDateTime dateCreated;
+    private LocalDateTime dateUpdate;
 }

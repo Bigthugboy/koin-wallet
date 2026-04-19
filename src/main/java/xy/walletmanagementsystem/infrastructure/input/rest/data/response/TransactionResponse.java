@@ -15,9 +15,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TransactionResponse {
-    private String transactionId;
-    private String userId;
-    private String walletId;
+    private Long transactionId;
+    private Long userId;
+    private Long walletId;
     private TransactionType type;
     private BigDecimal amount;
     private TransactionStatus status;

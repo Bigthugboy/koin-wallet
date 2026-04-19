@@ -14,10 +14,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class WalletResponse {
-    private String walletId;
-    private String userId;
+    private Long walletId;
+    private Long userId;
     private BigDecimal balance;
     private String currency;
     private WalletStatus status;
-    private LocalDateTime createdDate;
+    private LocalDateTime dateCreated;
 }

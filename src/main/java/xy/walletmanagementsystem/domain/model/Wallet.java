@@ -16,11 +16,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class Wallet {
-    private String walletId;
-    private String userId;
+    private Long walletId;
+    private Long userId;
     private BigDecimal balance;
     private String currency;
     private WalletStatus status;
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedDate;
+    private LocalDateTime dateCreated;
+    private LocalDateTime dateUpdate;
 }

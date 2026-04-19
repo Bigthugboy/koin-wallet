@@ -6,8 +6,10 @@ import java.util.Optional;
 
 public interface KycOutPutPort {
     Kyc save(Kyc kyc);
-    Optional<Kyc> findByUserId(String userId);
-    Optional<Kyc> findById(String kycId);
+    Optional<Kyc> findByUserId(Long userId);
+    Optional<Kyc> findById(Long kycId);
 
-    Kyc findByIdAndUserId(String id, String userId);
+    Kyc findByIdAndUserId(Long id, Long userId);
+
+    boolean isVerified(Long userId);
 }

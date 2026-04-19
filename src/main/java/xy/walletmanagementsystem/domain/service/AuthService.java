@@ -3,6 +3,7 @@ package xy.walletmanagementsystem.domain.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import xy.walletmanagementsystem.applicationPort.input.AuthUseCase;
 import xy.walletmanagementsystem.applicationPort.input.OtpUseCase;
 import xy.walletmanagementsystem.applicationPort.input.WalletUseCase;
+import xy.walletmanagementsystem.applicationPort.output.EmailOutPutPort;
 import xy.walletmanagementsystem.applicationPort.output.TokenBlacklistOutPutPort;
 import xy.walletmanagementsystem.applicationPort.output.UserOutPutPort;
 import xy.walletmanagementsystem.domain.enums.AccountStatus;
@@ -20,6 +22,7 @@ import xy.walletmanagementsystem.domain.enums.OtpType;
 import xy.walletmanagementsystem.domain.enums.UserRole;
 import xy.walletmanagementsystem.domain.exception.WalletManagementException;
 import xy.walletmanagementsystem.domain.model.AuthResponse;
+import xy.walletmanagementsystem.domain.model.EmailObject;
 import xy.walletmanagementsystem.domain.model.User;
 import xy.walletmanagementsystem.infrastructure.input.rest.message.ErrorMessages;
 import xy.walletmanagementsystem.infrastructure.output.config.security.JwtProvider;
@@ -28,6 +31,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Optional;
+
+import static xy.walletmanagementsystem.domain.messages.ConstantMessages.*;
+import static xy.walletmanagementsystem.domain.messages.EmailRegex.EMAIL_REGEX;
 
 @Slf4j
 @Service
@@ -41,24 +47,42 @@ public class AuthService implements AuthUseCase {
     private final AuthenticationManager authenticationManager;
     private final TokenBlacklistOutPutPort tokenBlacklistOutPutPort;
     private final OtpUseCase otpUseCase;
+    private final EmailOutPutPort emailOutPutPort;
 
     @Override
     @Transactional
-    public User signup(User user, String password) throws WalletManagementException {
+    public User signup(User user, String password,boolean isAdmin) throws WalletManagementException {
         if (userOutPutPort.findByEmail(user.getEmail()).isPresent()) {
             throw new WalletManagementException(ErrorMessages.USER_EMAIL_ALREADY_EXISTS);
         }
-        User savedUser = buildUserDetails(user, password);
-        walletUseCase.createWallet(savedUser.getId());
+        existByPhoneNumber(user.getPhoneNumber());
+        User savedUser = buildUserDetails(user, password,isAdmin);
+        createWallet(savedUser);
+        sendWelcomeEmail(savedUser);
         return savedUser;
     }
+@Async
+protected void createWallet(User savedUser) throws WalletManagementException {
+        walletUseCase.createWallet(savedUser.getId());
+    }
 
-    private User buildUserDetails(User user, String password) {
+    private void existByPhoneNumber(String phoneNumber) throws WalletManagementException {
+        if (StringUtils.isNotBlank(phoneNumber) && userOutPutPort.existsByPhoneNumber(phoneNumber)) {
+            throw new WalletManagementException(ErrorMessages.USER_PHONE_NUMBER_ALREADY_EXISTS);
+        }
+    }
+
+    private User buildUserDetails(User user, String password,boolean isAdmin) {
+        if(isAdmin){
+            user.setRole(UserRole.ADMIN);
+        } else {
+            user.setRole(UserRole.USER);
+        }
         user.setPasswordHash(passwordEncoder.encode(password));
         user.setStatus(AccountStatus.ACTIVE);
-        user.setRole(UserRole.USER);
-        user.setCreatedDate(LocalDateTime.now());
-        user.setUpdatedDate(LocalDateTime.now());
+        user.setEmailVerified(true);
+        user.setDateCreated(LocalDateTime.now());
+        user.setDateUpdate(LocalDateTime.now());
         return userOutPutPort.save(user);
     }
 
@@ -71,11 +95,7 @@ public class AuthService implements AuthUseCase {
         if (user.isEmpty()) {
             throw new WalletManagementException(ErrorMessages.USER_NOT_FOUND);
         }
-//        if (!Boolean.TRUE.equals(user.getEmailVerified())) {
-//            throw new FundsTrackerException(ErrorMessages.EMAIL_NOT_VERIFIED, HttpStatus.UNAUTHORIZED);
-//        }
         String accessToken = jwtProvider.generateAccessToken(user.get());
-        String refreshToken = jwtProvider.generateRefreshToken(user.get());
         LocalDateTime issuedAt = LocalDateTime.now();
         LocalDateTime expiresAt = jwtProvider.getExpirationFromToken(accessToken)
                 .toInstant()
@@ -83,8 +103,7 @@ public class AuthService implements AuthUseCase {
                 .toLocalDateTime();
         return AuthResponse.builder()
                 .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .type("Bearer")
+                .type(BEARER)
                 .issuedAt(issuedAt)
                 .expiresAt(expiresAt)
                 .build();
@@ -94,7 +113,7 @@ public class AuthService implements AuthUseCase {
     public void forgetPassword(String email) throws WalletManagementException {
         validateEmailFormat(email);
         if (userOutPutPort.existsByEmail(email)) {
-            otpUseCase.generateOtp(email, OtpType.FORGOT_PASSWORD);
+            otpUseCase.generateOtp(email, OtpType.PASSWORD_RESET);
             log.info("Forget password OTP triggered for {}", email);
         } else {
             throw new WalletManagementException(ErrorMessages.USER_NOT_FOUND);
@@ -110,14 +129,16 @@ public class AuthService implements AuthUseCase {
         if (StringUtils.isBlank(newPassword)) {
             throw new WalletManagementException(ErrorMessages.NEW_PASSWORD_IS_REQUIRED);
         }
-        boolean isVerified = otpUseCase.verifyOtp(email, otp, OtpType.FORGOT_PASSWORD);
+        boolean isVerified = otpUseCase.verifyOtp(email, otp, OtpType.PASSWORD_RESET);
         if (isVerified) {
             Optional<User> user = userOutPutPort.findByEmail(email);
             if (user.isEmpty()){
                 throw new WalletManagementException(ErrorMessages.USER_NOT_FOUND);
             }
             user.get().setPasswordHash(passwordEncoder.encode(newPassword));
+            user.get().setDateUpdate(LocalDateTime.now());
             userOutPutPort.save(user.get());
+            sendPasswordResetSuccessEmail(email);
             log.info("Password reset successful for user {}", email);
         } else {
             throw new WalletManagementException(ErrorMessages.OTP_INVALID);
@@ -125,8 +146,8 @@ public class AuthService implements AuthUseCase {
     }
 
     @Override
-    public void logout(String userId, String token) throws WalletManagementException {
-        if (StringUtils.isBlank(userId)) {
+    public void logout(Long userId, String token) throws WalletManagementException {
+        if (userId == null) {
             throw new WalletManagementException(ErrorMessages.USER_ID_IS_REQUIRED);
         }
         Optional<User> user = userOutPutPort.findById(userId);
@@ -148,23 +169,6 @@ public class AuthService implements AuthUseCase {
     }
 
 
-
-    @Override
-    public void changePassword(String userId, String currentPassword, String newPassword, String confirmNewPassword) throws WalletManagementException {
-        if (!newPassword.equals(confirmNewPassword)) {
-            throw new WalletManagementException(ErrorMessages.PASSWORDS_DO_NOT_MATCH);
-        }
-        User user = userOutPutPort.findById(userId)
-                .orElseThrow(() -> new WalletManagementException(ErrorMessages.USER_NOT_FOUND));
-
-        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
-            throw new WalletManagementException(ErrorMessages.OLD_PASSWORD_INCORRECT);
-        }
-        user.setPasswordHash(passwordEncoder.encode(newPassword));
-        user.setUpdatedDate(LocalDateTime.now());
-        userOutPutPort.save(user);
-    }
-
     private void validateEmailAndPassword(String email, String password) throws WalletManagementException {
         validateEmailFormat(email);
         if(StringUtils.isBlank(password)) {
@@ -176,9 +180,24 @@ public class AuthService implements AuthUseCase {
         if (StringUtils.isBlank(email)) {
             throw new WalletManagementException(ErrorMessages.EMAIL_IS_REQUIRED);
         }
-        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
-        if (!email.matches(emailRegex)) {
+        if (!email.matches(EMAIL_REGEX)) {
             throw new WalletManagementException(ErrorMessages.INVALID_EMAIL);
         }
+    }
+@Async
+protected void sendWelcomeEmail(User user) {
+        emailOutPutPort.sendEmail(EmailObject.builder()
+                .recipient(user.getEmail())
+                .subject(WELCOME_MESSAGE)
+                .body(ACCOUNT_CREATED_SUCCESS + user.getFullName())
+                .build());
+    }
+@Async
+protected void sendPasswordResetSuccessEmail(String email) {
+        emailOutPutPort.sendEmail(EmailObject.builder()
+                .recipient(email)
+                .subject(PASSWORD_RESET_SUCCESSFULLY)
+                .body(PASSWORD_RESET_MESSAGE)
+                .build());
     }
 }

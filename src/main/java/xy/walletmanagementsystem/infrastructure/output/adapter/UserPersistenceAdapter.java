@@ -23,14 +23,25 @@ public class UserPersistenceAdapter implements UserOutPutPort {
     }
 
     @Override
-    public Optional<User> findById(String userId) {
+    public Optional<User> findById(Long userId) {
         return userRepository.findById(userId)
                 .map(userMapper::toDomain);
     }
 
+    @Override
     public User save(User user) {
         UserEntity entity = userMapper.toEntity(user);
         UserEntity savedEntity = userRepository.save(entity);
         return userMapper.toDomain(savedEntity);
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    @Override
+    public boolean existsByPhoneNumber(String phoneNumber) {
+        return userRepository.existsByPhoneNumber(phoneNumber);
     }
 }

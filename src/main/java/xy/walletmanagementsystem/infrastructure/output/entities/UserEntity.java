@@ -1,18 +1,23 @@
 package xy.walletmanagementsystem.infrastructure.output.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.UuidGenerator;
 import xy.walletmanagementsystem.domain.enums.AccountStatus;
 import xy.walletmanagementsystem.domain.enums.UserRole;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
-@Table(name = "users")
+@Table(
+    name = "users",
+    indexes = {
+        @Index(name = "idx_users_email", columnList = "email"),
+        @Index(name = "idx_users_phone_number", columnList = "phoneNumber"),
+        @Index(name = "idx_users_status", columnList = "status")
+    }
+)
 @Getter
 @Setter
 @AllArgsConstructor
@@ -20,8 +25,8 @@ import java.time.LocalDateTime;
 @Builder
 public class UserEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long id;
 
     @Column(nullable = false)
     private String fullName;
@@ -41,6 +46,9 @@ public class UserEntity {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedDate;
+    @Column(nullable = false)
+    private boolean emailVerified;
+
+    private LocalDateTime dateCreated;
+    private LocalDateTime dateUpdate;
 }

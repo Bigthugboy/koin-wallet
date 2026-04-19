@@ -21,6 +21,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import xy.walletmanagementsystem.domain.exception.WalletManagementException;
+import xy.walletmanagementsystem.domain.messages.UrlConstant;
 import xy.walletmanagementsystem.infrastructure.output.config.host.AllowedHost;
 
 @Slf4j
@@ -53,9 +54,11 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             authorize ->
                 authorize
-                    .requestMatchers("/api/v1/funds-tracker/auth/**")
+                    .requestMatchers(UrlConstant.AUTH_URL + "/**")
                     .permitAll()
-                    .requestMatchers("/api/v1/funds-tracker/admin/**")
+                    .requestMatchers("/api/v1/webhooks/**")
+                    .permitAll()
+                    .requestMatchers(UrlConstant.ADMIN_URL + "/**")
                     .hasAnyRole("ADMIN", "SUPER_ADMIN")
                     .requestMatchers(HttpMethod.GET, WhiteList.GET_PATTERNS)
                     .permitAll()
@@ -70,19 +73,6 @@ public class SecurityConfig {
     return httpSecurity.build();
   }
 
-  // @Bean
-  // public CorsConfigurationSource corsConfigurationSource() {
-  // CorsConfiguration configuration = new CorsConfiguration();
-  // configuration.setAllowedOriginPatterns(allowedHost.getPatterns());
-  // configuration.setAllowedMethods(allowedHost.getMethods());
-  // configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-  // configuration.setAllowCredentials(true);
-  //
-  // UrlBasedCorsConfigurationSource source = new
-  // UrlBasedCorsConfigurationSource();
-  // source.registerCorsConfiguration("/**", configuration);
-  // return source;
-  // }
 
   @Bean
   WebMvcConfigurer corsConfigurer() {

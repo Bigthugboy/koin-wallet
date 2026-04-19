@@ -1,19 +1,12 @@
 package xy.walletmanagementsystem.domain.enums;
 
 public enum LoanStatus {
-    PENDING(0),
-    APPROVED(1),
-    DISBURSED(2),
-    REPAID(3),
-    DEFAULTED(4);
+    PENDING,
+    APPROVED,
+    DISBURSED,
+    PARTIALLY_REPAID,
+    REPAID,
+    DEFAULTED;
 
-    private final int value;
 
-    LoanStatus(int value) {
-        this.value = value;
-    }
-
-    public int getValue() {
-        return value;
-    }
 }

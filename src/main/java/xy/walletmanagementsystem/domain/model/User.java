@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class User {
-    private String id;
+    private Long id;
     private String fullName;
     private String email;
     private String phoneNumber;
@@ -24,6 +24,7 @@ public class User {
     private AccountStatus status;
     private UserRole role;
     private boolean emailVerified;
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedDate;
+    private boolean kycVerified;
+    private LocalDateTime dateCreated;
+    private LocalDateTime dateUpdate;
 }

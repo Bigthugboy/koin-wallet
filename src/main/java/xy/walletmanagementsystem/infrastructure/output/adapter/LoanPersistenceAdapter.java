@@ -26,13 +26,13 @@ public class LoanPersistenceAdapter implements LoanOutPutPort {
     }
 
     @Override
-    public Optional<Loan> findById(String loanId) {
+    public Optional<Loan> findById(Long loanId) {
         return loanRepository.findById(loanId)
                 .map(loanMapper::toDomain);
     }
 
     @Override
-    public List<Loan> findByUserId(String userId) {
+    public List<Loan> findByUserId(Long userId) {
         return loanRepository.findByUserId(userId).stream()
                 .map(loanMapper::toDomain)
                 .collect(Collectors.toList());
@@ -43,5 +43,11 @@ public class LoanPersistenceAdapter implements LoanOutPutPort {
         return loanRepository.findAll().stream()
                 .map(loanMapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<Loan> findByIdempotencyKey(String idempotencyKey) {
+        return loanRepository.findByIdempotencyKey(idempotencyKey)
+                .map(loanMapper::toDomain);
     }
 }

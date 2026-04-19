@@ -16,13 +16,16 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class Loan {
-    private String loanId;
-    private String userId;
+    private Long loanId;
+    private Long userId;
     private BigDecimal amount;
     private BigDecimal interestRate;
     private Integer durationInDays;
     private LoanStatus status;
-    private String repaymentSchedule; // JSON representation
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedDate;
+    private String repaymentSchedule;
+    private BigDecimal balanceDue;
+    private String idempotencyKey;
+    private LocalDateTime dateDisbursed;
+    private LocalDateTime dateCreated;
+    private LocalDateTime dateUpdate;
 }

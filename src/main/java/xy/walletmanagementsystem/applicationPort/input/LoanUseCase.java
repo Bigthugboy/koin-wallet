@@ -7,11 +7,11 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface LoanUseCase {
-    Loan applyForLoan(String userId, BigDecimal amount, Integer durationInDays) throws WalletManagementException;
-    Loan approveLoan(String loanId) throws WalletManagementException;
-    Loan disburseLoan(String loanId) throws WalletManagementException;
-    void repayLoan(String loanId, BigDecimal amount) throws WalletManagementException;
-    Loan getLoanDetails(String loanId) throws WalletManagementException;
-    List<Loan> getAllLoansForUser(String userId) throws WalletManagementException;
+    Loan applyForLoan(Long userId, BigDecimal amount, Integer durationInDays, String idempotencyKey) throws WalletManagementException;
+    Loan approveLoan(Long loanId) throws WalletManagementException;
+    Loan disburseLoan(Long loanId) throws WalletManagementException;
+    void repayLoan(Long loanId, BigDecimal amount, String idempotencyKey) throws WalletManagementException;
+    Loan getLoanDetails(Long loanId) throws WalletManagementException;
+    List<Loan> getAllLoansForUser(Long userId) throws WalletManagementException;
     List<Loan> listAllLoans() throws WalletManagementException;
 }

@@ -2,7 +2,8 @@ package xy.walletmanagementsystem.domain.enums;
 
 public enum OtpType {
     REGISTRATION,
-    FORGOT_PASSWORD,
+    PASSWORD_RESET,
     CHANGE_EMAIL,
+    RESEND_OTP, 
     OTHER
 }
