@@ -1,7 +1,6 @@
 package xy.walletmanagementsystem.infrastructure.input.rest.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +27,7 @@ import xy.walletmanagementsystem.infrastructure.input.rest.data.response.Transac
 import xy.walletmanagementsystem.infrastructure.input.rest.data.response.WalletResponse;
 import xy.walletmanagementsystem.infrastructure.input.rest.mapper.RestMapper;
 import xy.walletmanagementsystem.infrastructure.output.config.security.CustomUserDetails;
-import xy.walletmanagementsystem.infrastructure.output.paystack.PaystackFundingInitResponse;
+import xy.walletmanagementsystem.domain.model.PaystackFundingInitResponse;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,7 +61,7 @@ public class WalletController {
     }
 
     @PostMapping("/initialize-funding")
-    @Operation(summary = "Initialize Paystack Funding", description = "Creates a PENDING transaction and returns a Paystack authorization URL to redirect the user to for payment")
+    @Operation(summary = SwaggerUiConstants.INITIALIZE_PAYMENT, description = SwaggerUiConstants.INITILIZE_PAYMENT_DESCRIPTION)
     public ResponseEntity<ApiResponse<PaystackFundingInitResponse>> initializeFunding(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody FundingInitRequest request
