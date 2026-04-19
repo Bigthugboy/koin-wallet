@@ -24,16 +24,16 @@ public class KycService implements KycUseCase {
     private final UserOutPutPort userOutPutPort;
 
     @Override
-    public Kyc submitKyc(Long userId, String bvn, String nin) throws WalletManagementException {
-        validateHasBvnOrNin(bvn, nin);
-        if (userOutPutPort.findById(userId).isEmpty()) {
+    public Kyc submitKyc(Kyc kyc) throws WalletManagementException {
+        validateHasBvnOrNin(kyc);
+        if (userOutPutPort.findById(kyc.getUserId()).isEmpty()) {
             throw new WalletManagementException(ErrorMessages.USER_NOT_FOUND);
         }
-        if (kycOutPutPort.findByUserId(userId).isPresent()) {
+        if (kycOutPutPort.findByUserId(kyc.getUserId()).isPresent()) {
             throw new WalletManagementException(ErrorMessages.KYC_ALREADY_SUBMITTED);
         }
-        Kyc kyc = buildKycDetails(userId, bvn, nin);
-        Kyc savedKyc = kycOutPutPort.save(kyc);
+        Kyc buildKycDetails = buildKycDetails(kyc);
+        Kyc savedKyc = kycOutPutPort.save(buildKycDetails);
         verifyKyc(savedKyc.getId(), savedKyc.getUserId());
         return savedKyc;
     }
@@ -110,42 +110,26 @@ public class KycService implements KycUseCase {
         return kycOutPutPort.save(kyc);
     }
 
-    public Kyc rejectKyc(Long id, Long ownerId, String reviewedBy, String reason)
-            throws WalletManagementException {
 
-        if (StringUtils.isBlank(reason)) {
-            throw new WalletManagementException("Rejection reason is required");
-        }
 
-        Kyc kyc = getKycDetails(id, ownerId);
-
-        if (!KycVerificationStatus.PENDING.equals(kyc.getStatus())) {
-            throw new WalletManagementException(
-                    "Only KYC records pending review can be rejected");
-        }
-        kyc.setStatus(KycVerificationStatus.REJECTED);
-        kyc.setDateUpdate(LocalDateTime.now(ZoneOffset.UTC));
-        return kycOutPutPort.save(kyc);
-    }
-
-    private void validateHasBvnOrNin(String bvn, String nin) throws WalletManagementException {
-        if (StringUtils.isBlank(bvn) && StringUtils.isBlank(nin)) {
+    private void validateHasBvnOrNin(Kyc kyc) throws WalletManagementException {
+        if (StringUtils.isBlank(kyc.getBvn()) && StringUtils.isBlank(kyc.getNin())) {
             throw new WalletManagementException(ErrorMessages.BVN_OR_NIN_MUST_IS_REQUIRED_FOR_USER_KYC_VERIFICATION);
         }
-        if (StringUtils.isNotBlank(bvn) && !bvn.matches("^\\d{11}$")) {
+        if (StringUtils.isNotBlank(kyc.getBvn()) && !kyc.getBvn().matches("^\\d{11}$")) {
             throw new WalletManagementException(ErrorMessages.BVN_MUST_CONTAIN_EXACTLY_11_DIGITS);
         }
-        if(StringUtils.isNotBlank(nin) && !nin.matches("^\\d{11}$")) {
+        if(StringUtils.isNotBlank(kyc.getNin()) && !kyc.getNin().matches("^\\d{11}$")) {
             throw new WalletManagementException(ErrorMessages.NIN_MUST_CONTAIN_EXACTLY_11_DIGITS);
         }
 
     }
 
-    private static Kyc buildKycDetails(Long userId, String bvn, String nin) {
+    private static Kyc buildKycDetails(Kyc kyc) {
         return Kyc.builder()
-                .userId(userId)
-                .bvn(bvn)
-                .nin(nin)
+                .userId(kyc.getUserId())
+                .bvn(kyc.getBvn() != null ? kyc.getBvn() : null)
+                .nin(kyc.getNin() != null ? kyc.getNin() : null)
                 .status(KycVerificationStatus.PENDING)
                 .dateCreated(LocalDateTime.now())
                 .dateUpdate(LocalDateTime.now())
