@@ -25,7 +25,6 @@ import java.util.UUID;
 @Builder
 public class UserEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column(nullable = false)
