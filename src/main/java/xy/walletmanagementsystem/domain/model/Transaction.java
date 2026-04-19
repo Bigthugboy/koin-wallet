@@ -24,5 +24,6 @@ public class Transaction {
     private BigDecimal amount;
     private TransactionStatus status;
     private String referenceNumber;
+    private String description;
     private LocalDateTime timestamp;
 }
