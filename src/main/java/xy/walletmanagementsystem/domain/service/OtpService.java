@@ -15,6 +15,8 @@ import xy.walletmanagementsystem.infrastructure.input.rest.message.ErrorMessages
 import java.time.LocalDateTime;
 import java.util.Random;
 
+import static xy.walletmanagementsystem.domain.messages.ConstantMessages.*;
+
 @Service
 @RequiredArgsConstructor
 public class OtpService implements OtpUseCase {
@@ -74,13 +76,12 @@ public class OtpService implements OtpUseCase {
 
     private void sendOtpEmail(OtpDetails otpDetails) {
         String subject = switch (otpDetails.getType()) {
-            case PASSWORD_RESET -> "Password Reset OTP";
-            case REGISTRATION -> "Registration OTP";
-            case CHANGE_EMAIL -> "Email Change OTP";
-            case RESEND_OTP -> "Resend OTP";
-            default -> "OTP Code";
+            case PASSWORD_RESET -> PASSWORD_RESET_OTP;
+            case REGISTRATION -> REGISTRATION_OTP;
+            case RESEND_OTP -> RESEND_OTP;
+            default -> OTP_CODE;
         };
-        String body = "Your OTP is " + otpDetails.getOtp() + ". It expires in 10 minutes.";
+        String body = OTP_BODY + otpDetails.getOtp();
         emailOutPutPort.sendEmail(EmailObject.builder()
                 .recipient(otpDetails.getEmail())
                 .subject(subject)
