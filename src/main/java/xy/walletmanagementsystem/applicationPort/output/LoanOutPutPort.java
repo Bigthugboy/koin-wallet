@@ -10,4 +10,5 @@ public interface LoanOutPutPort {
     Optional<Loan> findById(Long loanId);
     List<Loan> findByUserId(Long userId);
     List<Loan> findAll();
+    Optional<Loan> findByIdempotencyKey(String idempotencyKey);
 }
