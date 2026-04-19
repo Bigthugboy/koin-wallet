@@ -25,6 +25,9 @@ import xy.walletmanagementsystem.infrastructure.output.config.security.CustomUse
 
 import java.util.Optional;
 
+import static xy.walletmanagementsystem.domain.messages.ConstantMessages.PROFILE_RETRIEVED;
+import static xy.walletmanagementsystem.domain.messages.ConstantMessages.PROFILE_UPDATED;
+
 @RestController
 @RequestMapping(UrlConstant.USER_URL)
 @RequiredArgsConstructor
@@ -38,7 +41,7 @@ public class UserController {
     @Operation(summary = SwaggerUiConstants.GET_PROFILE_SUMMARY, description = SwaggerUiConstants.GET_PROFILE_DESCRIPTION)
     public ResponseEntity<ApiResponse<UserResponse>> getProfile(@AuthenticationPrincipal CustomUserDetails userDetails) throws WalletManagementException {
         Optional<User> user = userUseCase.getUserDetails(userDetails.getId());
-        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(user.get()), "Profile retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(user.get()), PROFILE_RETRIEVED));
     }
 
     @PutMapping("/profile")
@@ -46,6 +49,6 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserResponse>> updateProfile(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody UpdateUserRequest updateUserREquest) throws WalletManagementException {
         User profileUpdates = restMapper.toUpdateUser(updateUserREquest);
         User updatedUser = userUseCase.updateUserProfile(userDetails.getId(), profileUpdates);
-        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(updatedUser), "Profile updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(updatedUser), PROFILE_UPDATED));
     }
 }
