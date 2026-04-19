@@ -1,5 +1,6 @@
 package xy.walletmanagementsystem.domain.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,16 +31,32 @@ class KycServiceTest {
     @InjectMocks
     private KycService kycService;
 
+    private Kyc kyc;
+
+    @BeforeEach
+    void setUp() {
+        kyc = Kyc.builder()
+                .userId(1L)
+                .bvn("12345678901")
+                .nin("23456789011")
+                .status(KycVerificationStatus.PENDING)
+                .build();
+
+
+
+
+    }
+
     @Test
     void submitKyc_shouldRejectWhenBothBvnAndNinMissing() {
         assertThrows(WalletManagementException.class,
-                () -> kycService.submitKyc(1L, "", ""));
+                () -> kycService.submitKyc(Kyc.builder().userId(1L).build()));
     }
 
     @Test
     void submitKyc_shouldRejectInvalidBvnFormat() {
         assertThrows(WalletManagementException.class,
-                () -> kycService.submitKyc(1L, "123", ""));
+                () -> kycService.submitKyc(Kyc.builder().userId(1L).bvn("123").build()));
     }
 
     @Test
@@ -57,7 +74,7 @@ class KycServiceTest {
         });
         when(kycOutPutPort.findByIdAndUserId(1L, 1L)).thenReturn(pending);
 
-        Kyc result = kycService.submitKyc(1L, "12345678901", "");
+        Kyc result = kycService.submitKyc(kyc);
 
         assertEquals(1L, result.getId());
     }
