@@ -84,6 +84,8 @@ public class SwaggerUiConstants {
 
     public static final String CREATE_WALLET_SUMMARY = "Create wallet for user";
     public static final String CREATE_WALLET_DESCRIPTION = "Initializes a wallet for the user. Use to create a wallet for existing users without one";
+    public static final String INITIALIZE_PAYMENT = "Initialize payment";
+    public static final String INITILIZE_PAYMENT_DESCRIPTION = "Creates a PENDING transaction and returns a Paystack authorization URL to redirect the user to for payment";
 
     // Transaction Controller
     public static final String TRANSACTION_TAG_NAME = "Transaction History";
