@@ -20,5 +20,6 @@ public class UserResponse {
     private String phoneNumber;
     private AccountStatus status;
     private UserRole role;
+    private boolean kycVerified;
     private LocalDateTime dateCreated;
 }
