@@ -15,5 +15,6 @@ public class UrlConstant {
     public static final String LOAN_URL = BASE_URL + "/loan";
     public static final String IDEMPOTENCY_KEY = "idempotency-key";
     public static final String PAYSTACK_URL =  "https://api.paystack.co/transaction/initialize";
+    public static final String WEBHOOK_URL = BASE_URL + "/webook";
 
 }
