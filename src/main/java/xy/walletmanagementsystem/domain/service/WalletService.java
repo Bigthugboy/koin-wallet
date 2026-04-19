@@ -27,6 +27,7 @@ import xy.walletmanagementsystem.infrastructure.input.rest.message.ErrorMessages
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static xy.walletmanagementsystem.domain.messages.ConstantMessages.FUND_CREDIT;
 
@@ -92,25 +93,29 @@ public class WalletService implements WalletUseCase {
         transactionOutPutPort.save(buildCreditTransaction(userId, amount, keyToCheck, savedWallet, TransactionStatus.SUCCESSFUL, "direct-fund"));
     }
 
-    @Override
     @Transactional
-    public PaystackFundingInitResponse initializeFunding(User user, BigDecimal amount)
+    @Override
+    public PaystackFundingInitResponse initializeFunding(Long userId, BigDecimal amount)
             throws WalletManagementException {
-        if (user == null || user.getId() == null) {
+        if (StringUtils.isBlank(userId.toString())) {
             throw new WalletManagementException(ErrorMessages.USER_ID_IS_REQUIRED);
         }
-        validateActiveUser(user.getId());
+        Optional<User> user = userOutPutPort.findById(userId);
+        if(user.isEmpty()){
+            throw new WalletManagementException(ErrorMessages.USER_NOT_FOUND);
+        }
+        validateActiveUser(user.get().getId());
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new WalletManagementException(ErrorMessages.AMOUNT_MUST_BE_GREATER_THAN_ZERO);
         }
 
-        Wallet wallet = walletOutPutPort.findByUserId(user.getId())
+        Wallet wallet = walletOutPutPort.findByUserId(user.get().getId())
                 .orElseThrow(() -> new WalletManagementException(ErrorMessages.WALLET_NOT_FOUND));
 
-        PaystackFundingInitResponse response = providerOutPutPort.initializeTransaction(user.getEmail(), amount);
+        PaystackFundingInitResponse response = providerOutPutPort.initializeTransaction(user.get().getEmail(), amount);
 
         Transaction pending = buildCreditTransaction(
-                user.getId(), amount, response.getReference(), wallet,
+                user.get().getId(), amount, response.getReference(), wallet,
                 TransactionStatus.PENDING, "paystack-init");
         transactionOutPutPort.save(pending);
 

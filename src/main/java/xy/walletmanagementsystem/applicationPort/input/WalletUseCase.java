@@ -1,5 +1,6 @@
 package xy.walletmanagementsystem.applicationPort.input;
 
+import org.springframework.transaction.annotation.Transactional;
 import xy.walletmanagementsystem.domain.enums.TransactionStatus;
 import xy.walletmanagementsystem.domain.exception.WalletManagementException;
 import xy.walletmanagementsystem.domain.model.PaystackWebhookEvent;
@@ -21,7 +22,9 @@ public interface WalletUseCase {
 
     List<Transaction> getTransactionHistory(Long userId) throws WalletManagementException;
 
-    PaystackFundingInitResponse initializeFunding(User user, BigDecimal amount) throws WalletManagementException;
+
+    @Transactional
+    PaystackFundingInitResponse initializeFunding(Long userId, BigDecimal amount) throws WalletManagementException;
 
     void confirmFunding(PaystackWebhookEvent event) throws WalletManagementException;
 

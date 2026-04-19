@@ -45,9 +45,7 @@ class WalletServiceTest {
 
     @InjectMocks private WalletService walletService;
 
-    // -----------------------------------------------------------------------
-    // createWallet
-    // -----------------------------------------------------------------------
+
 
     @Nested
     @DisplayName("createWallet")
@@ -97,9 +95,6 @@ class WalletServiceTest {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // fundWallet
-    // -----------------------------------------------------------------------
 
     @Nested
     @DisplayName("fundWallet")
@@ -168,9 +163,6 @@ class WalletServiceTest {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // getWalletBalance
-    // -----------------------------------------------------------------------
 
     @Nested
     @DisplayName("getWalletBalance")
@@ -198,9 +190,6 @@ class WalletServiceTest {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // getTransactionHistory
-    // -----------------------------------------------------------------------
 
     @Nested
     @DisplayName("getTransactionHistory")
@@ -221,10 +210,6 @@ class WalletServiceTest {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // initializeFunding
-    // -----------------------------------------------------------------------
-
     @Nested
     @DisplayName("initializeFunding")
     class InitializeFunding {
@@ -233,14 +218,14 @@ class WalletServiceTest {
         @DisplayName("null user → exception")
         void nullUser_shouldThrow() {
             assertThrows(WalletManagementException.class,
-                    () -> walletService.initializeFunding(null, new BigDecimal("100")));
+                    () -> walletService.initializeFunding(0L, new BigDecimal("100")));
         }
 
         @Test
         @DisplayName("user with null id → exception")
         void nullUserId_shouldThrow() {
             assertThrows(WalletManagementException.class,
-                    () -> walletService.initializeFunding(User.builder().build(), new BigDecimal("100")));
+                    () -> walletService.initializeFunding(0L, new BigDecimal("100")));
         }
 
         @Test
@@ -248,7 +233,7 @@ class WalletServiceTest {
         void zeroAmount_shouldThrow() {
             stubActiveUser(1L);
             assertThrows(WalletManagementException.class,
-                    () -> walletService.initializeFunding(activeUser(1L), BigDecimal.ZERO));
+                    () -> walletService.initializeFunding(activeUser().getId(), BigDecimal.ZERO));
         }
 
         @Test
@@ -257,7 +242,7 @@ class WalletServiceTest {
             stubActiveUser(1L);
             when(walletOutPutPort.findByUserId(1L)).thenReturn(Optional.empty());
             assertThrows(WalletManagementException.class,
-                    () -> walletService.initializeFunding(activeUser(1L), new BigDecimal("100")));
+                    () -> walletService.initializeFunding(1L, new BigDecimal("100")));
         }
 
         @Test
@@ -272,7 +257,7 @@ class WalletServiceTest {
                     .build();
             when(providerOutPutPort.initializeTransaction(anyString(), any())).thenReturn(paystackResp);
 
-            PaystackFundingInitResponse result = walletService.initializeFunding(activeUser(1L), new BigDecimal("100"));
+            PaystackFundingInitResponse result = walletService.initializeFunding(activeUser().getId(), new BigDecimal("100"));
 
             assertEquals("https://paystack.com/pay/ref", result.getAuthorizationUrl());
 
@@ -283,9 +268,6 @@ class WalletServiceTest {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // confirmFunding
-    // -----------------------------------------------------------------------
 
     @Nested
     @DisplayName("confirmFunding")
@@ -369,9 +351,7 @@ class WalletServiceTest {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // markTransactionTerminal
-    // -----------------------------------------------------------------------
+
 
     @Nested
     @DisplayName("markTransactionTerminal")
@@ -435,16 +415,14 @@ class WalletServiceTest {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Fixtures
-    // -----------------------------------------------------------------------
+
 
     private void stubActiveUser(Long id) {
-        when(userOutPutPort.findById(id)).thenReturn(Optional.of(activeUser(id)));
+        when(userOutPutPort.findById(id)).thenReturn(Optional.of(activeUser()));
     }
 
-    private User activeUser(Long id) {
-        return User.builder().id(id).email("user@test.com")
+    private User activeUser() {
+        return User.builder().id(1L).email("user@test.com")
                 .status(AccountStatus.ACTIVE).build();
     }
 

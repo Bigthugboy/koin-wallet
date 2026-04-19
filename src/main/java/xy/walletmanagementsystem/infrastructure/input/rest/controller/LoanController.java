@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasRole;
+import static xy.walletmanagementsystem.domain.messages.ConstantMessages.*;
 import static xy.walletmanagementsystem.domain.messages.UrlConstant.IDEMPOTENCY_KEY;
 
 @RestController
@@ -52,7 +53,7 @@ public class LoanController {
             @RequestHeader(value = IDEMPOTENCY_KEY, required = false) String idempotencyKey
     ) throws WalletManagementException {
         Loan loan = loanUseCase.applyForLoan(userDetails.getId(), request.getAmount(), request.getDurationInDays(), idempotencyKey);
-        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(loan), "Loan application submitted successfully"));
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(loan), LOAN_APPLICATION_SUCCESSFUL));
     }
 
     @PostMapping("/{loanId}/approve")
@@ -60,7 +61,7 @@ public class LoanController {
     @Operation(summary = SwaggerUiConstants.APPROVE_LOAN_SUMMARY, description = SwaggerUiConstants.APPROVE_LOAN_DESCRIPTION)
     public ResponseEntity<ApiResponse<LoanResponse>> approveLoan(@PathVariable Long loanId) throws WalletManagementException {
         Loan loan = loanUseCase.approveLoan(loanId);
-        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(loan), "Loan approved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(loan), LOAN_APPROVED_SUCCESSFULLY));
     }
 
     @PostMapping("/{loanId}/disburse")
@@ -68,7 +69,7 @@ public class LoanController {
     @Operation(summary = SwaggerUiConstants.DISBURSE_LOAN_SUMMARY, description = SwaggerUiConstants.DISBURSE_LOAN_DESCRIPTION)
     public ResponseEntity<ApiResponse<LoanResponse>> disburseLoan(@PathVariable Long loanId) throws WalletManagementException {
         Loan loan = loanUseCase.disburseLoan(loanId);
-        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(loan), "Loan disbursed successfully"));
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(loan), LOAN_DISBURSED_SUCCESSFULLY));
     }
 
     @PostMapping("/{loanId}/repay")
@@ -79,14 +80,14 @@ public class LoanController {
             @RequestHeader(value = IDEMPOTENCY_KEY, required = false) String idempotencyKey
     ) throws WalletManagementException {
         Loan loan = loanUseCase.repayLoan(loanId, amount, idempotencyKey);
-        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(loan), "Repayment processed successfully"));
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(loan), LOAN_REPAYMENT_PROCESSED ));
     }
 
     @GetMapping("/{loanId}")
     @Operation(summary = SwaggerUiConstants.GET_LOAN_DETAILS_SUMMARY, description = SwaggerUiConstants.GET_LOAN_DETAILS_DESCRIPTION)
     public ResponseEntity<ApiResponse<LoanResponse>> getLoanDetails(@PathVariable Long loanId) throws WalletManagementException {
         Loan loan = loanUseCase.getLoanDetails(loanId);
-        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(loan), "Loan details retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(loan), LOAN_DETAILS_RETRIEVED_SUCCESSFULLY));
     }
 
     @GetMapping("/my-loans")
@@ -94,7 +95,7 @@ public class LoanController {
     public ResponseEntity<ApiResponse<List<LoanResponse>>> getMyLoans(@AuthenticationPrincipal CustomUserDetails userDetails) throws WalletManagementException {
         List<Loan> loans = loanUseCase.getAllLoansForUser(userDetails.getId());
         List<LoanResponse> response = loans.stream().map(restMapper::toResponse).collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(response, "Loans retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, LOANS_RETRIEVED_SUCCESSFULLY));
     }
 
     @GetMapping
@@ -103,6 +104,6 @@ public class LoanController {
     public ResponseEntity<ApiResponse<List<LoanResponse>>> listAllLoans() throws WalletManagementException {
         List<Loan> loans = loanUseCase.listAllLoans();
         List<LoanResponse> response = loans.stream().map(restMapper::toResponse).collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(response, "All loans retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response,LOANS_RETRIEVED_SUCCESSFULLY));
     }
 }

@@ -31,6 +31,8 @@ import xy.walletmanagementsystem.domain.model.PaystackFundingInitResponse;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static xy.walletmanagementsystem.domain.messages.ConstantMessages.*;
+
 @RestController
 @RequestMapping(UrlConstant.WALLET_URL)
 @RequiredArgsConstructor
@@ -39,14 +41,14 @@ public class WalletController {
 
     private final WalletUseCase walletUseCase;
     private final RestMapper restMapper;
-    private final UserOutPutPort userOutPutPort;
+
 
 
     @PostMapping("/create")
     @Operation(summary = SwaggerUiConstants.CREATE_WALLET_SUMMARY, description = SwaggerUiConstants.CREATE_WALLET_DESCRIPTION)
     public ResponseEntity<ApiResponse<WalletResponse>> createWallet(@AuthenticationPrincipal CustomUserDetails userDetails) throws WalletManagementException {
         Wallet wallet = walletUseCase.createWallet(userDetails.getId());
-        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(wallet), "Wallet created successfully"));
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(wallet), WALLET_CREATED_SUCCESSFULLY));
     }
 
     @PostMapping("/fund")
@@ -57,7 +59,7 @@ public class WalletController {
             @RequestHeader(value = UrlConstant.IDEMPOTENCY_KEY, required = false) String idempotencyKey
     ) throws WalletManagementException {
         walletUseCase.fundWallet(userDetails.getId(), request.getAmount(), request.getReference(), idempotencyKey);
-        return ResponseEntity.ok(ApiResponse.ok("Wallet funded successfully"));
+        return ResponseEntity.ok(ApiResponse.ok(WALLET_FUNDED_SUCCESSFULLY));
     }
 
     @PostMapping("/initialize-funding")
@@ -66,17 +68,15 @@ public class WalletController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody FundingInitRequest request
     ) throws WalletManagementException {
-        User user = userOutPutPort.findById(userDetails.getId())
-                .orElseThrow(() -> new WalletManagementException("User not found"));
-        PaystackFundingInitResponse response = walletUseCase.initializeFunding(user, request.getAmount());
-        return ResponseEntity.ok(ApiResponse.success(response, "Funding initialized. Redirect user to authorizationUrl"));
+        PaystackFundingInitResponse response = walletUseCase.initializeFunding(userDetails.getId(), request.getAmount());
+        return ResponseEntity.ok(ApiResponse.success(response, FUNDING_INITIALIZED_REDIRECT_TO_COMPLETE_PAYMENT));
     }
 
     @GetMapping("/balance")
     @Operation(summary = SwaggerUiConstants.GET_BALANCE_SUMMARY, description = SwaggerUiConstants.GET_BALANCE_DESCRIPTION)
     public ResponseEntity<ApiResponse<WalletResponse>> getBalance(@AuthenticationPrincipal CustomUserDetails userDetails) throws WalletManagementException {
         Wallet wallet = walletUseCase.getWalletBalance(userDetails.getId());
-        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(wallet), "Balance retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(wallet), BALANCE_RETRIEVED_SUCCESSFULLY));
     }
 
     @GetMapping("/transactions")
@@ -87,6 +87,6 @@ public class WalletController {
                 .map(restMapper::toResponse)
                 .collect(Collectors.toList());
         
-        return ResponseEntity.ok(ApiResponse.success(response, "Transaction history retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, TRANSACTION_RETRIEVED_SUCCESSFULLY));
     }
 }
