@@ -42,9 +42,6 @@ class PaystackServiceTest {
         field.set(paystackService, SECRET_KEY);
     }
 
-    // -----------------------------------------------------------------------
-    // initializeTransaction
-    // -----------------------------------------------------------------------
 
     @Nested
     @DisplayName("initializeTransaction")
@@ -137,16 +134,14 @@ class PaystackServiceTest {
             when(restTemplate.exchange(any(), any(), any(), eq(PaystackInitializeResponse.class)))
                     .thenReturn(ResponseEntity.ok(resp));
 
-            // Should not throw — verifies the multiplication is safe for 200.50
+
             PaystackFundingInitResponse result =
                     paystackService.initializeTransaction(VALID_EMAIL, new BigDecimal("200.50"));
             assertNotNull(result);
         }
     }
 
-    // -----------------------------------------------------------------------
-    // verifyWebhookSignature
-    // -----------------------------------------------------------------------
+
 
     @Nested
     @DisplayName("verifyWebhookSignature")
@@ -189,9 +184,6 @@ class PaystackServiceTest {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Helpers
-    // -----------------------------------------------------------------------
 
     private String computeHmac(String data, String key) throws Exception {
         Mac mac = Mac.getInstance("HmacSHA512");
@@ -206,10 +198,6 @@ class PaystackServiceTest {
         return sb.toString();
     }
 
-    /**
-     * Builds a mock {@link PaystackInitializeResponse} via reflection,
-     * since the class only exposes Lombok getters and no public setters.
-     */
     private PaystackInitializeResponse buildPaystackResponse(boolean status, String authUrl, String accessCode) {
         try {
             PaystackInitializeResponse resp = new PaystackInitializeResponse();
