@@ -7,6 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +20,14 @@ import xy.walletmanagementsystem.domain.enums.OtpType;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "otp_details")
+@Table(
+    name = "otp_details",
+    indexes = {
+        @Index(name = "idx_otp_email", columnList = "email"),
+        @Index(name = "idx_otp_email_type", columnList = "email, type"),
+        @Index(name = "idx_otp_expiry_date", columnList = "expiryDate")
+    }
+)
 @Getter
 @Setter
 @AllArgsConstructor
@@ -27,7 +35,7 @@ import java.time.LocalDateTime;
 @Builder
 public class OtpEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column(nullable = false)
