@@ -19,6 +19,9 @@ public class WalletPersistenceAdapter implements WalletOutPutPort {
     @Override
     public Wallet save(Wallet wallet) {
         WalletEntity entity = walletMapper.toEntity(wallet);
+        if (entity.getId() == null) {
+            entity.setId(java.util.UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE);
+        }
         WalletEntity savedEntity = walletRepository.save(entity);
         return walletMapper.toDomain(savedEntity);
     }
