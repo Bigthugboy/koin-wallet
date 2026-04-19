@@ -1,54 +1,55 @@
 package xy.walletmanagementsystem.infrastructure.output.adapter;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
-
-import java.util.concurrent.TimeUnit;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import xy.walletmanagementsystem.infrastructure.output.config.CacheConfig;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TokenBlackAdapterTest {
 
     @Mock
-    private StringRedisTemplate redisTemplate;
+    private CacheManager cacheManager;
     @Mock
-    private ValueOperations<String, String> valueOperations;
+    private Cache cache;
 
-    @Test
-    void blacklistToken_shouldStoreTokenWithExpiry() {
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        TokenBlackAdapter adapter = new TokenBlackAdapter(redisTemplate);
+    private TokenBlackAdapter adapter;
 
-        adapter.blacklistToken("token", 10_000);
-
-        verify(valueOperations).set(eq("jwt:blacklist:token"), eq("true"), eq(10_000L), eq(TimeUnit.MILLISECONDS));
+    @BeforeEach
+    void setUp() {
+        adapter = new TokenBlackAdapter(cacheManager);
     }
 
     @Test
-    void blacklistToken_shouldIgnoreInvalidInput() {
-        TokenBlackAdapter adapter = new TokenBlackAdapter(redisTemplate);
-        adapter.blacklistToken(null, 0);
-        verify(redisTemplate, never()).opsForValue();
+    void blacklistToken_shouldStoreTokenInCache() {
+        when(cacheManager.getCache(CacheConfig.TOKEN_BLACKLIST_CACHE)).thenReturn(cache);
+        String token = "valid-token";
+        adapter.blacklistToken(token, 10_000);
+        verify(cache).put(token, true);
     }
 
     @Test
-    void isTokenBlacklisted_shouldReturnRedisLookupResult() {
-        TokenBlackAdapter adapter = new TokenBlackAdapter(redisTemplate);
-        when(redisTemplate.hasKey("jwt:blacklist:token")).thenReturn(true);
-        assertTrue(adapter.isTokenBlacklisted("token"));
+    void blacklistToken_shouldIgnoreNullToken() {
+        adapter.blacklistToken(null, 10_000);
+        verify(cache, never()).put(anyString(), any());
+    }
 
-        when(redisTemplate.hasKey("jwt:blacklist:missing")).thenReturn(false);
-        assertFalse(adapter.isTokenBlacklisted("missing"));
+    @Test
+    void isTokenBlacklisted_shouldReturnCacheStatus() {
+        when(cacheManager.getCache(CacheConfig.TOKEN_BLACKLIST_CACHE)).thenReturn(cache);
+        String token = "blacklisted-token";
+        when(cache.get(token)).thenReturn(mock(Cache.ValueWrapper.class));
+        assertTrue(adapter.isTokenBlacklisted(token));
+
+        when(cache.get("active-token")).thenReturn(null);
+        assertFalse(adapter.isTokenBlacklisted("active-token"));
     }
 }
