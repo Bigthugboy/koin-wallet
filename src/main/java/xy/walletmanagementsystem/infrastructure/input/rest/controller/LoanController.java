@@ -73,13 +73,13 @@ public class LoanController {
 
     @PostMapping("/{loanId}/repay")
     @Operation(summary = SwaggerUiConstants.REPAY_LOAN_SUMMARY, description = SwaggerUiConstants.REPAY_LOAN_DESCRIPTION)
-    public ResponseEntity<ApiResponse<String>> repayLoan(
+    public ResponseEntity<ApiResponse<LoanResponse>> repayLoan(
             @PathVariable Long loanId, 
             @RequestParam BigDecimal amount,
             @RequestHeader(value = IDEMPOTENCY_KEY, required = false) String idempotencyKey
     ) throws WalletManagementException {
-        loanUseCase.repayLoan(loanId, amount, idempotencyKey);
-        return ResponseEntity.ok(ApiResponse.ok("Repayment processed successfully"));
+        Loan loan = loanUseCase.repayLoan(loanId, amount, idempotencyKey);
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(loan), "Repayment processed successfully"));
     }
 
     @GetMapping("/{loanId}")
