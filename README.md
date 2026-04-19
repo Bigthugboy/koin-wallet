@@ -63,10 +63,29 @@ Once the application is running, you can access the Swagger UI at:
 `http://localhost:8080/swagger-ui/index.html`
 
 ## Environment Variables
+The application requires the following environment variables. Default values are provided in `application.properties` for local development.
+
+### Database
 - `DB_URL`: JDBC URL for PostgreSQL.
 - `DB_USERNAME`: Database username.
 - `DB_PASSWORD`: Database password.
-- `SPRING_KAFKA_BOOTSTRAP_SERVERS`: Kafka broker addresses.
+
+### Security / JWT
+- `JWT_SECRET`: Secret key used for signing JWTs (minimum 256 bits).
+- `JWT_ACCESS_EXPIRATION`: Access token expiration time in milliseconds.
+- `JWT_REFRESH_EXPIRATION`: Refresh token expiration time in milliseconds.
+
+### Messaging
+- `KAFKA_BOOTSTRAP_SERVERS`: Kafka broker addresses (e.g., `localhost:9092`).
+
+### External APIs
+- `PAYSTACK_SECRET_KEY`: Your Paystack Secret Key for initializing funding and verifying webhooks.
+
+### Email Configuration (SMTP)
+- `MAIL_HOST`: SMTP server host (e.g., `smtp.gmail.com`).
+- `MAIL_PORT`: SMTP server port.
+- `MAIL_USERNAME`: SMTP authenticated email address.
+- `MAIL_PASSWORD`: SMTP app password.
 
 ## Key Design Decisions
 - **Hexagonal Architecture**: Clean separation between domain logic and infrastructure adapters.
