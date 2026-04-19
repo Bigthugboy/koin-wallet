@@ -41,7 +41,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (jwt != null && jwtProvider.validateToken(jwt)) {
                 if (tokenBlacklistOutPutPort.isTokenBlacklisted(jwt)) {
                     log.warn("Blocked request with blacklisted token");
-                    filterChain.doFilter(request, response);
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"success\":false,\"message\":\"Token is blacklisted\"}");
                     return;
                 }
                 Long userId = jwtProvider.getUserIdFromToken(jwt);
