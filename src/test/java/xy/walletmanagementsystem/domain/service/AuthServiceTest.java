@@ -84,7 +84,7 @@ class AuthServiceTest {
             return saved;
         });
 
-        User saved = authService.signup(user, "plain-pass");
+        User saved = authService.signup(user, "plain-pass",false);
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userOutPutPort).save(userCaptor.capture());
@@ -102,7 +102,7 @@ class AuthServiceTest {
     void signup_shouldFailWhenEmailExists() {
         when(userOutPutPort.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 
-        assertThrows(WalletManagementException.class, () -> authService.signup(user, "pass"));
+        assertThrows(WalletManagementException.class, () -> authService.signup(user, "pass",false));
         verify(userOutPutPort, never()).save(any(User.class));
     }
 
