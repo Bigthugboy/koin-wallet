@@ -26,5 +26,13 @@ public static final String WELCOME_MESSAGE = "Welcome to Koin Wallet";
     public static final String OTP_BODY = "Your OTP is %d. It expires in 10 minutes.";
     public static final String PROFILE_RETRIEVED =  "Profile retrieved successfully";
     public static final String PROFILE_UPDATED = "Profile updated successfully";
+    public static final String PAYSTACK_SIGNATURE="x-paystack-signature";
+    public static final String WEBHOOK_PROCESSED="Webhook processed";
+    public static final String WEBHOOK_ERROR_ACKNOWLEDGED="Error acknowledged";
+    public static final String WEBHOOK_CHARGE_SUCCESS ="charge.success";
+    public static final String WEBHOOK_CHARGE_FAILED ="charge.failed";
+    public static final String WEBHOOK_TRANSFER_SUCCESS= "transfer.success";
+    public static final String WEBHOOK_TRANSFER_FAILED=       "transfer.failed";
+    public static final String WEBHOOK_TRANSFER_REVERSED=       "transfer.reversed";
 
 }
