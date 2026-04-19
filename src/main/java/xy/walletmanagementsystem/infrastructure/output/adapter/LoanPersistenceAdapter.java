@@ -21,6 +21,9 @@ public class LoanPersistenceAdapter implements LoanOutPutPort {
     @Override
     public Loan save(Loan loan) {
         LoanEntity entity = loanMapper.toEntity(loan);
+        if (entity.getId() == null) {
+            entity.setId(java.util.UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE);
+        }
         LoanEntity savedEntity = loanRepository.save(entity);
         return loanMapper.toDomain(savedEntity);
     }
