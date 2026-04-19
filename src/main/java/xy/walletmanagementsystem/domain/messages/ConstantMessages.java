@@ -34,5 +34,6 @@ public static final String WELCOME_MESSAGE = "Welcome to Koin Wallet";
     public static final String WEBHOOK_TRANSFER_SUCCESS= "transfer.success";
     public static final String WEBHOOK_TRANSFER_FAILED=       "transfer.failed";
     public static final String WEBHOOK_TRANSFER_REVERSED=       "transfer.reversed";
+    public static final String FUND_CREDIT = "Your wallet has been credited with NGN %.2f. Transaction reference: %s.";
 
 }
