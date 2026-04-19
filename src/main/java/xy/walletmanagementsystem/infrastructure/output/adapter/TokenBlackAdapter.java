@@ -1,30 +1,26 @@
 package xy.walletmanagementsystem.infrastructure.output.adapter;
 
 import lombok.AllArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import xy.walletmanagementsystem.applicationPort.output.TokenBlacklistOutPutPort;
-
-import java.util.concurrent.TimeUnit;
+import xy.walletmanagementsystem.infrastructure.output.config.CacheConfig;
 
 @Service
 @AllArgsConstructor
-
 public class TokenBlackAdapter implements TokenBlacklistOutPutPort {
-    private final StringRedisTemplate redisTemplate;
-    private static final String BLACKLIST_PREFIX = "jwt:blacklist:";
+    private final CacheManager cacheManager;
 
     @Override
     public void blacklistToken(String token, long expirationMs) {
-        if (token == null || expirationMs <= 0) {
+        if (token == null) {
             return;
         }
-        redisTemplate.opsForValue().set(
-                BLACKLIST_PREFIX + token,
-                "true",
-                expirationMs,
-                TimeUnit.MILLISECONDS
-        );
+        Cache cache = cacheManager.getCache(CacheConfig.TOKEN_BLACKLIST_CACHE);
+        if (cache != null) {
+            cache.put(token, true);
+        }
     }
 
     @Override
@@ -32,6 +28,7 @@ public class TokenBlackAdapter implements TokenBlacklistOutPutPort {
         if (token == null) {
             return false;
         }
-        return Boolean.TRUE.equals(redisTemplate.hasKey(BLACKLIST_PREFIX + token));
+        Cache cache = cacheManager.getCache(CacheConfig.TOKEN_BLACKLIST_CACHE);
+        return cache != null && cache.get(token) != null;
     }
 }
