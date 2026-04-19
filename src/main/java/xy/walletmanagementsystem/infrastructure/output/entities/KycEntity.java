@@ -28,7 +28,6 @@ import java.time.LocalDateTime;
 @Builder
 public class KycEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column(nullable = false, unique = true)
