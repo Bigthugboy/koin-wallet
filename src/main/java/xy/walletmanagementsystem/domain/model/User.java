@@ -24,6 +24,7 @@ public class User {
     private AccountStatus status;
     private UserRole role;
     private boolean emailVerified;
+    private boolean kycVerified;
     private LocalDateTime dateCreated;
     private LocalDateTime dateUpdate;
 }
