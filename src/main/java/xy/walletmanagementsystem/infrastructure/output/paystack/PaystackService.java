@@ -2,6 +2,7 @@ package xy.walletmanagementsystem.infrastructure.output.paystack;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -10,7 +11,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import xy.walletmanagementsystem.applicationPort.output.PaymentProviderOutPutPort;
 import xy.walletmanagementsystem.domain.exception.WalletManagementException;
+import xy.walletmanagementsystem.domain.model.PaystackFundingInitResponse;
+import xy.walletmanagementsystem.domain.model.PaystackInitializeRequest;
+import xy.walletmanagementsystem.domain.model.PaystackInitializeResponse;
+import xy.walletmanagementsystem.infrastructure.input.rest.message.ErrorMessages;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -20,32 +26,27 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
+import static xy.walletmanagementsystem.domain.messages.EmailRegex.EMAIL_REGEX;
+import static xy.walletmanagementsystem.domain.messages.UrlConstant.PAYSTACK_URL;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PaystackService {
+public class PaystackService implements PaymentProviderOutPutPort {
 
     private final RestTemplate restTemplate;
 
     @Value("${paystack.secret.key}")
     private String secretKey;
 
-    @Value("${paystack.base-url}")
-    private String baseUrl;
 
-    /**
-     * Initialize a Paystack transaction. Saves a PENDING transaction locally and returns the
-     * Paystack authorization URL to redirect the user to for payment.
-     *
-     * @param email  Customer email address
-     * @param amount Amount in Naira
-     * @return PaystackFundingInitResponse containing the authorization URL and reference
-     */
-    public PaystackFundingInitResponse initializeTransaction(String email, BigDecimal amount)
-            throws WalletManagementException {
+
+    @Override
+    public PaystackFundingInitResponse initializeTransaction(String email, BigDecimal amount) throws WalletManagementException {
+        validatePaystackRequest(email,amount);
+
         String reference = "KW-" + UUID.randomUUID().toString().replace("-", "").substring(0, 16).toUpperCase();
 
-        // Paystack requires amount in Kobo (multiply by 100)
         long amountInKobo = amount.multiply(new BigDecimal("100")).longValue();
 
         PaystackInitializeRequest requestBody = PaystackInitializeRequest.builder()
@@ -59,7 +60,7 @@ public class PaystackService {
 
         try {
             ResponseEntity<PaystackInitializeResponse> response = restTemplate.exchange(
-                    baseUrl + "/transaction/initialize",
+                    PAYSTACK_URL,
                     HttpMethod.POST,
                     entity,
                     PaystackInitializeResponse.class
@@ -68,8 +69,9 @@ public class PaystackService {
             PaystackInitializeResponse body = response.getBody();
             if (body == null || !body.isStatus() || body.getData() == null) {
                 log.error("Paystack initialization failed: {}", body != null ? body.getMessage() : "null response");
-                throw new WalletManagementException("Failed to initialize payment with Paystack");
+                throw new WalletManagementException(ErrorMessages.TRANSACTION_FAILED);
             }
+
 
             log.info("Paystack transaction initialized. Reference: {}", reference);
             return PaystackFundingInitResponse.builder()
@@ -82,18 +84,24 @@ public class PaystackService {
             throw e;
         } catch (Exception e) {
             log.error("Error calling Paystack API: {}", e.getMessage());
-            throw new WalletManagementException("Error connecting to payment gateway: " + e.getMessage());
+            throw new WalletManagementException(ErrorMessages.ERROR_CONNECTING_TO_PAYMENT_GATEWAY + e.getMessage());
         }
     }
 
-    /**
-     * Verify HMAC SHA-512 signature from Paystack webhook to ensure authenticity.
-     *
-     * @param rawPayload The raw JSON body string from the webhook request
-     * @param signature  The x-paystack-signature header value
-     * @return true if the signature is valid
-     */
-    public boolean verifyWebhookSignature(String rawPayload, String signature) {
+    private void validatePaystackRequest(String email, BigDecimal amount) throws WalletManagementException {
+        if (StringUtils.isBlank(email) || !email.matches(EMAIL_REGEX)) {
+            throw new WalletManagementException(ErrorMessages.EMAIL_IS_REQUIRED);
+        }
+        if (amount == null) {
+            throw new WalletManagementException(ErrorMessages.AMOUNT_IS_REQUIRED);
+        }
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new WalletManagementException(ErrorMessages.AMOUNT_MUST_BE_GREATER_THAN_ZERO);
+        }
+    }
+
+@Override
+public boolean verifyWebhookSignature(String rawPayload, String signature) {
         try {
             Mac mac = Mac.getInstance("HmacSHA512");
             SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
