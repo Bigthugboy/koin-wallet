@@ -14,7 +14,16 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "transactions")
+@Table(
+    name = "transactions",
+    indexes = {
+        @Index(name = "idx_transactions_user_id", columnList = "userId"),
+        @Index(name = "idx_transactions_wallet_id", columnList = "walletId"),
+        @Index(name = "idx_transactions_reference_number", columnList = "referenceNumber"),
+        @Index(name = "idx_transactions_status", columnList = "status"),
+        @Index(name = "idx_transactions_timestamp", columnList = "timestamp")
+    }
+)
 @Getter
 @Setter
 @AllArgsConstructor
@@ -22,7 +31,7 @@ import java.time.LocalDateTime;
 @Builder
 public class TransactionEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column(nullable = false)
