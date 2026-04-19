@@ -10,8 +10,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import xy.walletmanagementsystem.domain.service.WebhookService;
+import xy.walletmanagementsystem.applicationPort.input.WebhookUseCase;
 import xy.walletmanagementsystem.infrastructure.input.rest.message.SwaggerUiConstants;
+
+import static xy.walletmanagementsystem.domain.messages.ConstantMessages.*;
 
 @Slf4j
 @RestController
@@ -19,21 +21,21 @@ import xy.walletmanagementsystem.infrastructure.input.rest.message.SwaggerUiCons
 @RequiredArgsConstructor
 @Tag(name = SwaggerUiConstants.WEBHOOK_TAG_NAME, description = SwaggerUiConstants.WEBHOOK_TAG_DESCRIPTION)
 public class WebhookController {
-
-    private final WebhookService webhookService;
+    private final WebhookUseCase webhookUseCase;
 
     @PostMapping(value = "/paystack", consumes = "application/json")
-    @Operation(summary = SwaggerUiConstants.PAYSTACK_WEBHOOK_SUMMARY, description = SwaggerUiConstants.PAYSTACK_WEBHOOK_DESCRIPTION)
+    @Operation(
+            summary = SwaggerUiConstants.PAYSTACK_WEBHOOK_SUMMARY,
+            description = SwaggerUiConstants.PAYSTACK_WEBHOOK_DESCRIPTION)
     public ResponseEntity<String> handlePaystackWebhook(
-            @RequestHeader(value = "x-paystack-signature", required = false) String signature,
+            @RequestHeader(value = PAYSTACK_SIGNATURE, required = false) String signature,
             @RequestBody String rawPayload) {
         try {
-            webhookService.handlePaystackWebhookRaw(rawPayload, signature);
-            return ResponseEntity.ok("Webhook processed");
+            webhookUseCase.processRawWebhook(rawPayload, signature);
+            return ResponseEntity.ok(WEBHOOK_PROCESSED);
         } catch (Exception e) {
             log.error("Error processing Paystack webhook: {}", e.getMessage());
-            // Always return 200 to Paystack — they retry on non-2xx responses
-            return ResponseEntity.ok("Error acknowledged");
+            return ResponseEntity.ok(WEBHOOK_ERROR_ACKNOWLEDGED);
         }
     }
 }
