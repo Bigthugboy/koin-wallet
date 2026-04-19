@@ -7,11 +7,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import xy.walletmanagementsystem.applicationPort.input.WalletUseCase;
 import xy.walletmanagementsystem.applicationPort.input.WebhookUseCase;
+import xy.walletmanagementsystem.applicationPort.output.PaymentProviderOutPutPort;
+import xy.walletmanagementsystem.domain.enums.TransactionStatus;
 import xy.walletmanagementsystem.domain.exception.WalletManagementException;
-import xy.walletmanagementsystem.infrastructure.output.paystack.PaystackService;
+import xy.walletmanagementsystem.domain.model.PaystackWebhookEvent;
+import xy.walletmanagementsystem.infrastructure.input.rest.message.ErrorMessages;
 
 import java.math.BigDecimal;
 import java.util.Map;
+
+import static xy.walletmanagementsystem.domain.messages.ConstantMessages.*;
 
 @Slf4j
 @Service
@@ -19,76 +24,108 @@ import java.util.Map;
 public class WebhookService implements WebhookUseCase {
 
     private final WalletUseCase walletUseCase;
-    private final PaystackService paystackService;
+    private final PaymentProviderOutPutPort paymentProviderOutPutPort;
     private final ObjectMapper objectMapper;
 
-    @Override
-    public String handlePaystackWebhook(String signature, Map<String, Object> payload) throws WalletManagementException {
-        // Legacy path — not used when raw body path is enabled; kept for interface compatibility.
-        throw new UnsupportedOperationException("Use handlePaystackWebhookRaw instead");
-    }
 
-    /**
-     * Process a Paystack webhook.
-     * Verifies the HMAC SHA-512 signature, then confirms wallet funding if successful.
-     *
-     * @param rawBody   The raw JSON string body from Paystack
-     * @param signature The x-paystack-signature header
-     */
-    public void handlePaystackWebhookRaw(String rawBody, String signature) throws WalletManagementException {
+
+    @Override
+    public void processRawWebhook(String rawBody, String signature) throws WalletManagementException {
         log.info("Received Paystack webhook");
 
-        // 1. Verify the webhook signature
-        if (signature == null || !paystackService.verifyWebhookSignature(rawBody, signature)) {
-            log.warn("Invalid webhook signature — request rejected");
-            throw new WalletManagementException("Invalid webhook signature");
-        }
+        verifySignature(rawBody, signature);
 
-        // 2. Parse the raw payload
+        PaystackWebhookEvent event = parsePaystackEvent(rawBody);
+
+        routeEvent(event);
+    }
+
+
+    private void verifySignature(String rawBody, String signature) throws WalletManagementException {
+        if (signature == null || !paymentProviderOutPutPort.verifyWebhookSignature(rawBody, signature)) {
+            log.warn("Invalid webhook signature — request rejected");
+            throw new WalletManagementException(ErrorMessages.INVALID_PAYMENT_WEBHOOK);
+        }
+    }
+
+    PaystackWebhookEvent parsePaystackEvent(String rawBody) throws WalletManagementException {
         Map<String, Object> payload;
         try {
             payload = objectMapper.readValue(rawBody, new TypeReference<>() {});
         } catch (Exception e) {
-            log.error("Failed to parse webhook payload", e);
-            throw new WalletManagementException("Invalid webhook payload format");
+            log.error("Failed to parse webhook payload: {}", e.getMessage());
+            throw new WalletManagementException(ErrorMessages.INVALID_WEBHOOK_PAYLOAD_FORMAT);
         }
 
-        // 3. Only process 'charge.success' events
-        String event = stringValue(payload.get("event"));
-        if (!"charge.success".equals(event)) {
-            log.info("Ignoring webhook event: {}", event);
-            return;
+        String event = requireString(payload.get("event"), "event");
+
+        Map<String, Object> data = requireMap(payload.get("data"), "data");
+        String reference  = requireString(data.get("reference"),  "data.reference");
+        String rawStatus  = requireString(data.get("status"),     "data.status");
+        String rawAmount  = requireString(data.get("amount"),     "data.amount");
+
+        Map<String, Object> customer = requireMap(data.get("customer"), "data.customer");
+        String email = requireString(customer.get("email"), "data.customer.email");
+
+        BigDecimal amountInNaira = new BigDecimal(rawAmount).divide(new BigDecimal("100"));
+
+        return PaystackWebhookEvent.builder()
+                .event(event)
+                .reference(reference)
+                .amount(amountInNaira)
+                .customerEmail(email)
+                .paystackStatus(rawStatus)
+                .build();
+    }
+
+
+    private void routeEvent(PaystackWebhookEvent event) throws WalletManagementException {
+        log.info("Routing Paystack event '{}' for reference '{}'", event.getEvent(), event.getReference());
+
+        switch (event.getEvent()) {
+            case WEBHOOK_CHARGE_SUCCESS -> {
+                walletUseCase.confirmFunding(event);
+                log.info("charge.success processed — wallet credited. ref={}", event.getReference());
+            }
+            case WEBHOOK_CHARGE_FAILED -> {
+                walletUseCase.markTransactionTerminal(
+                        event.getReference(), TransactionStatus.FAILED, event.getEvent());
+                log.info("charge.failed processed — transaction marked FAILED. ref={}", event.getReference());
+            }
+            case WEBHOOK_TRANSFER_SUCCESS -> {
+                walletUseCase.markTransactionTerminal(
+                        event.getReference(), TransactionStatus.SUCCESSFUL, event.getEvent());
+                log.info("transfer.success processed. ref={}", event.getReference());
+            }
+            case WEBHOOK_TRANSFER_FAILED -> {
+                walletUseCase.markTransactionTerminal(
+                        event.getReference(), TransactionStatus.FAILED, event.getEvent());
+                log.info("transfer.failed processed — transaction marked FAILED. ref={}", event.getReference());
+            }
+            case WEBHOOK_TRANSFER_REVERSED -> {
+                walletUseCase.markTransactionTerminal(
+                        event.getReference(), TransactionStatus.REVERSED, event.getEvent());
+                log.info("transfer.reversed processed — transaction marked REVERSED. ref={}", event.getReference());
+            }
+            default -> log.info("Unhandled Paystack event '{}' — ignored.", event.getEvent());
         }
-
-        // 4. Extract required fields from data block
-        Map<String, Object> data = getMap(payload.get("data"), "data");
-        if (!"success".equals(data.get("status"))) {
-            log.info("Charge not successful, ignoring.");
-            return;
-        }
-
-        Map<String, Object> customer = getMap(data.get("customer"), "customer");
-        String email = stringValue(customer.get("email"));
-        String reference = stringValue(data.get("reference"));
-        BigDecimal amountInKobo = new BigDecimal(stringValue(data.get("amount")));
-        BigDecimal amountInNaira = amountInKobo.divide(new BigDecimal("100"));
-
-        // 5. Confirm and credit the wallet
-        walletUseCase.confirmFunding(reference, amountInNaira, email);
-        log.info("Webhook processed. Wallet funded for {}. Ref: {}", email, reference);
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, Object> getMap(Object value, String field) throws WalletManagementException {
-        if (!(value instanceof Map<?, ?> mapValue)) {
-            throw new WalletManagementException("Invalid webhook payload: missing " + field);
+    private Map<String, Object> requireMap(Object value, String field) throws WalletManagementException {
+        if (!(value instanceof Map<?, ?> map)) {
+            String msg = String.format(ErrorMessages.WEBHOOK_MISSING_FIELD, field);
+            log.error(msg);
+            throw new WalletManagementException(msg);
         }
-        return (Map<String, Object>) mapValue;
+        return (Map<String, Object>) map;
     }
 
-    private String stringValue(Object value) throws WalletManagementException {
+    private String requireString(Object value, String field) throws WalletManagementException {
         if (value == null) {
-            throw new WalletManagementException("Missing required field in webhook payload");
+            String msg = String.format(ErrorMessages.WEBHOOK_MISSING_FIELD, field);
+            log.error(msg);
+            throw new WalletManagementException(msg);
         }
         return value.toString();
     }
