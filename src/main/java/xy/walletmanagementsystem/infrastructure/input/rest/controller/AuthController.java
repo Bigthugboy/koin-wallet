@@ -67,14 +67,14 @@ public class AuthController {
     @Operation(summary = SwaggerUiConstants.RESET_PASSWORD_SUMMARY, description = SwaggerUiConstants.RESET_PASSWORD_DESCRIPTION)
     public ResponseEntity<ApiResponse<String>> resetPassword(@Valid @RequestBody PasswordResetRequest request) throws WalletManagementException {
         authUseCase.resetPassword(request.getEmail(), request.getOtp(), request.getNewPassword());
-        return ResponseEntity.ok(ApiResponse.ok("Password reset successful"));
+        return ResponseEntity.ok(ApiResponse.ok(PASSWORD_RESET_SUCCESSFULLY));
     }
 
     @PostMapping("/resend-otp")
     @Operation(summary = SwaggerUiConstants.RESEND_OTP_SUMMARY, description = SwaggerUiConstants.RESEND_OTP_DESCRIPTION)
     public ResponseEntity<ApiResponse<String>> resendOtp(@RequestParam String email) throws WalletManagementException {
         otpUseCase.resendOtp(email, OtpType.RESEND_OTP);
-        return ResponseEntity.ok(ApiResponse.ok("OTP resent successfully"));
+        return ResponseEntity.ok(ApiResponse.ok(OTP_RESEND_SUCCESSFUL));
     }
 
     @PostMapping("/logout")
@@ -85,7 +85,7 @@ public class AuthController {
     ) throws WalletManagementException {
         String token = extractToken(authorizationHeader);
         authUseCase.logout(userDetails.getId(), token);
-        return ResponseEntity.ok(ApiResponse.ok("Logout successful"));
+        return ResponseEntity.ok(ApiResponse.ok(LOGOUT_SUCCESSFUL));
     }
 
     private String extractToken(String authorizationHeader) {
