@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import xy.walletmanagementsystem.applicationPort.input.WalletUseCase;
+import xy.walletmanagementsystem.applicationPort.output.NotificationOutPutPort;
 import xy.walletmanagementsystem.applicationPort.output.PaymentProviderOutPutPort;
 import xy.walletmanagementsystem.applicationPort.output.TransactionOutPutPort;
 import xy.walletmanagementsystem.applicationPort.output.UserOutPutPort;
@@ -27,7 +28,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static xy.walletmanagementsystem.domain.messages.EmailRegex.EMAIL_REGEX;
+import static xy.walletmanagementsystem.domain.messages.ConstantMessages.FUND_CREDIT;
 
 @Slf4j
 @Service
@@ -38,6 +39,7 @@ public class WalletService implements WalletUseCase {
     private final TransactionOutPutPort transactionOutPutPort;
     private final UserOutPutPort userOutPutPort;
     private final PaymentProviderOutPutPort providerOutPutPort;
+    private final NotificationOutPutPort notificationOutPutPort;
 
 
 
@@ -87,8 +89,7 @@ public class WalletService implements WalletUseCase {
             throw new IdempotencyException(ErrorMessages.TRANSACTION_ALREADY_EXISTS);
         }
         Wallet savedWallet = creditWallet(userId, amount);
-        transactionOutPutPort.save(buildCreditTransaction(userId, amount, keyToCheck, savedWallet,
-                TransactionStatus.SUCCESSFUL, "direct-fund"));
+        transactionOutPutPort.save(buildCreditTransaction(userId, amount, keyToCheck, savedWallet, TransactionStatus.SUCCESSFUL, "direct-fund"));
     }
 
     @Override
@@ -139,6 +140,12 @@ public class WalletService implements WalletUseCase {
 
 
         log.info("Wallet funded for user {}. ref={} amount={}", existing.getUserId(), reference, event.getAmount());
+        sendFundingConfirmationEmail(event.getCustomerEmail(), event.getAmount(), reference);
+    }
+
+    private void sendFundingConfirmationEmail(String email, BigDecimal amount, String reference) {
+        String message = FUND_CREDIT +amount + reference;
+        notificationOutPutPort.sendPaymentNotification(email, message);
     }
 
     @Override
