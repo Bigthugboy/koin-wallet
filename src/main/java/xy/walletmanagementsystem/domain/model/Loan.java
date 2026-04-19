@@ -22,7 +22,9 @@ public class Loan {
     private BigDecimal interestRate;
     private Integer durationInDays;
     private LoanStatus status;
-    private String repaymentSchedule; // JSON representation
+    private String repaymentSchedule;
+    private BigDecimal balanceDue;
+    private String idempotencyKey;
     private LocalDateTime dateDisbursed;
     private LocalDateTime dateCreated;
     private LocalDateTime dateUpdate;
