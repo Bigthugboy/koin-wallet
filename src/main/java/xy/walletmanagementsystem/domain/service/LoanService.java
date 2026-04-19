@@ -98,7 +98,7 @@ public class LoanService implements LoanUseCase {
     @Transactional
     public Loan disburseLoan(Long loanId) throws WalletManagementException {
         validateLoanId(loanId);
-        Loan loan = getLoan(loanId);
+        Loan loan = getApprovedLoan(loanId);
         Wallet wallet = getWallet(loan);
         updateWallet(wallet, loan);
         Loan savedLoan = updateLoan(loan);
@@ -114,8 +114,12 @@ public class LoanService implements LoanUseCase {
 
 
     private @NonNull Loan getLoan(Long loanId) throws WalletManagementException {
-        Loan loan = loanOutPutPort.findById(loanId)
+        return loanOutPutPort.findById(loanId)
                 .orElseThrow(() -> new WalletManagementException(ErrorMessages.LOAN_NOT_FOUND));
+    }
+
+    private @NonNull Loan getApprovedLoan(Long loanId) throws WalletManagementException {
+        Loan loan = getLoan(loanId);
         if (loan.getStatus() != LoanStatus.APPROVED) {
             throw new WalletManagementException(ErrorMessages.LOAN_STATUS_IS_NOT_APPROVED);
         }
@@ -206,7 +210,8 @@ public class LoanService implements LoanUseCase {
         BigDecimal totalInterest = amount.multiply(interestRate).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
         BigDecimal totalAmountDue = amount.add(totalInterest);
         LocalDateTime dueDate = LocalDateTime.now().plusDays(durationInDays);
-        return String.format(INSTALLMENT_TEMPLATE, dueDate.toLocalDate().toString(), totalAmountDue);
+        // INSTALLMENT_TEMPLATE: installment(int), dueDate(String), amountDue(BigDecimal)
+        return String.format(INSTALLMENT_TEMPLATE, 1, dueDate.toLocalDate().toString(), totalAmountDue);
     }
 
     private static void validateRequest(Long userId, BigDecimal amount, Integer durationInDays) throws WalletManagementException {
