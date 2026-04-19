@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
         @Index(name = "idx_transactions_wallet_id", columnList = "walletId"),
         @Index(name = "idx_transactions_reference_number", columnList = "referenceNumber"),
         @Index(name = "idx_transactions_status", columnList = "status"),
-        @Index(name = "idx_transactions_timestamp", columnList = "timestamp")
+
     }
 )
 @Getter
