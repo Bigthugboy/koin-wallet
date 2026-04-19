@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import xy.walletmanagementsystem.applicationPort.input.KycUseCase;
 import xy.walletmanagementsystem.applicationPort.input.UserUseCase;
 import xy.walletmanagementsystem.applicationPort.output.UserOutPutPort;
 import xy.walletmanagementsystem.domain.exception.WalletManagementException;
@@ -36,7 +37,7 @@ public class UserController {
 
     private final UserUseCase userUseCase;
     private final RestMapper restMapper;
-    private final xy.walletmanagementsystem.applicationPort.input.KycUseCase kycUseCase;
+
 
     @GetMapping("/profile")
     @Operation(summary = SwaggerUiConstants.GET_PROFILE_SUMMARY, description = SwaggerUiConstants.GET_PROFILE_DESCRIPTION)
