@@ -69,7 +69,7 @@ class WalletServiceTest {
         when(walletOutPutPort.findByUserId(1L)).thenReturn(Optional.of(wallet));
         when(walletOutPutPort.save(any(Wallet.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        walletService.fundWallet(1L, new BigDecimal("50.00"), "ref-1");
+        walletService.fundWallet(1L, new BigDecimal("50.00"), "ref-1", null);
 
         ArgumentCaptor<Transaction> txCaptor = ArgumentCaptor.forClass(Transaction.class);
         verify(transactionOutPutPort).save(txCaptor.capture());
@@ -80,7 +80,14 @@ class WalletServiceTest {
     @Test
     void fundWallet_shouldRejectInvalidAmount() {
         assertThrows(WalletManagementException.class,
-                () -> walletService.fundWallet(1L, BigDecimal.ZERO, "ref-1"));
+                () -> walletService.fundWallet(1L, BigDecimal.ZERO, "ref-1", null));
+    }
+
+    @Test
+    void fundWallet_shouldRejectDuplicateIdempotencyKey() {
+        when(transactionOutPutPort.findByReference("idemp-key-123")).thenReturn(Optional.of(Transaction.builder().build()));
+        assertThrows(xy.walletmanagementsystem.domain.exception.IdempotencyException.class,
+                () -> walletService.fundWallet(1L, new BigDecimal("50.00"), "ref-1", "idemp-key-123"));
     }
 
     @Test
