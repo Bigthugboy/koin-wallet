@@ -22,6 +22,9 @@ import xy.walletmanagementsystem.infrastructure.input.rest.data.response.KycResp
 import xy.walletmanagementsystem.infrastructure.input.rest.mapper.RestMapper;
 import xy.walletmanagementsystem.infrastructure.output.config.security.CustomUserDetails;
 
+import static xy.walletmanagementsystem.domain.messages.ConstantMessages.KYC_DETAILS_RETRIEVED_SUCCESSFULLY;
+import static xy.walletmanagementsystem.domain.messages.ConstantMessages.KYC_DETAILS_SUBMITTED_SUCCESSFULLY;
+
 @RestController
 @RequestMapping(UrlConstant.KYC_URL)
 @RequiredArgsConstructor
@@ -37,13 +40,13 @@ public class KycController {
     public ResponseEntity<ApiResponse<KycResponse>> submitKyc(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody KycRequest request) throws WalletManagementException {
         Kyc kycDetails = restMapper.toKyc(request, userDetails.getId());
         Kyc kyc = kycUseCase.submitKyc(kycDetails);
-        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(kyc), "KYC details submitted successfully"));
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(kyc), KYC_DETAILS_SUBMITTED_SUCCESSFULLY));
     }
 
     @GetMapping("/status")
     @Operation(summary = SwaggerUiConstants.GET_KYC_STATUS_SUMMARY, description = SwaggerUiConstants.GET_KYC_STATUS_DESCRIPTION)
     public ResponseEntity<ApiResponse<KycResponse>> getKycStatus(@AuthenticationPrincipal CustomUserDetails userDetails) throws WalletManagementException {
         Kyc kyc = kycUseCase.getKycDetails(userDetails.getId());
-        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(kyc), "KYC status retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(kyc), KYC_DETAILS_RETRIEVED_SUCCESSFULLY));
     }
 }
