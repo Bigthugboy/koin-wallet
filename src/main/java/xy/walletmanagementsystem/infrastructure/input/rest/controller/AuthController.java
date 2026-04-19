@@ -72,8 +72,8 @@ public class AuthController {
 
     @PostMapping("/resend-otp")
     @Operation(summary = SwaggerUiConstants.RESEND_OTP_SUMMARY, description = SwaggerUiConstants.RESEND_OTP_DESCRIPTION)
-    public ResponseEntity<ApiResponse<String>> resendOtp(@RequestParam String email) throws WalletManagementException {
-        otpUseCase.resendOtp(email, OtpType.RESEND_OTP);
+    public ResponseEntity<ApiResponse<String>> resendOtp(@RequestParam String email,@RequestParam OtpType otpType) throws WalletManagementException {
+        otpUseCase.resendOtp(email, otpType);
         return ResponseEntity.ok(ApiResponse.ok(OTP_RESEND_SUCCESSFUL));
     }
 
@@ -83,8 +83,10 @@ public class AuthController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestHeader(value = "Authorization", required = false) String authorizationHeader
     ) throws WalletManagementException {
-        String token = extractToken(authorizationHeader);
-        authUseCase.logout(userDetails.getId(), token);
+        if (userDetails != null) {
+            String token = extractToken(authorizationHeader);
+            authUseCase.logout(userDetails.getId(), token);
+        }
         return ResponseEntity.ok(ApiResponse.ok(LOGOUT_SUCCESSFUL));
     }
 
