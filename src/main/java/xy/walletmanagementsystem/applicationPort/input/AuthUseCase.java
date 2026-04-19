@@ -5,7 +5,7 @@ import xy.walletmanagementsystem.domain.model.AuthResponse;
 import xy.walletmanagementsystem.domain.model.User;
 
 public interface AuthUseCase {
-    User signup(User user, String password) throws WalletManagementException;
+    User signup(User user, String password,boolean admin) throws WalletManagementException;
 
     AuthResponse login(String email, String password) throws WalletManagementException;
 
