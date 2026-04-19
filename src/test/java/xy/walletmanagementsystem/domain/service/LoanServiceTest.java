@@ -11,13 +11,16 @@ import xy.walletmanagementsystem.applicationPort.output.NotificationOutPutPort;
 import xy.walletmanagementsystem.applicationPort.output.TransactionOutPutPort;
 import xy.walletmanagementsystem.applicationPort.output.UserOutPutPort;
 import xy.walletmanagementsystem.applicationPort.output.WalletOutPutPort;
+import xy.walletmanagementsystem.applicationPort.output.KycOutPutPort;
 import xy.walletmanagementsystem.domain.enums.LoanStatus;
+import xy.walletmanagementsystem.domain.enums.KycVerificationStatus;
 import xy.walletmanagementsystem.domain.enums.TransactionType;
 import xy.walletmanagementsystem.domain.exception.WalletManagementException;
 import xy.walletmanagementsystem.domain.model.Loan;
 import xy.walletmanagementsystem.domain.model.Transaction;
 import xy.walletmanagementsystem.domain.model.User;
 import xy.walletmanagementsystem.domain.model.Wallet;
+import xy.walletmanagementsystem.domain.model.Kyc;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -43,40 +46,67 @@ class LoanServiceTest {
     private UserOutPutPort userOutPutPort;
     @Mock
     private NotificationOutPutPort notificationOutPutPort;
+    @Mock
+    private KycOutPutPort kycOutPutPort;
 
     @InjectMocks
     private LoanService loanService;
 
     @Test
+    void applyForLoan_shouldRejectWhenKycMissingOrNotVerified() {
+        when(kycOutPutPort.findByUserId(1L)).thenReturn(Optional.empty());
+        assertThrows(WalletManagementException.class, 
+                () -> loanService.applyForLoan(1L, new BigDecimal("100"), 30, null));
+                
+        Kyc kyc = Kyc.builder().userId(1L).status(KycVerificationStatus.PENDING).build();
+        when(kycOutPutPort.findByUserId(1L)).thenReturn(Optional.of(kyc));
+        assertThrows(WalletManagementException.class, 
+                () -> loanService.applyForLoan(1L, new BigDecimal("100"), 30, null));
+    }
+
+    @Test
     void applyForLoan_shouldRejectWhenWalletNotFunded() {
+        Kyc kyc = Kyc.builder().userId(1L).status(KycVerificationStatus.VERIFIED).build();
+        when(kycOutPutPort.findByUserId(1L)).thenReturn(Optional.of(kyc));
         Wallet wallet = Wallet.builder().userId(1L).balance(BigDecimal.ZERO).build();
         when(walletOutPutPort.findByUserId(1L)).thenReturn(Optional.of(wallet));
 
         assertThrows(WalletManagementException.class,
-                () -> loanService.applyForLoan(1L, new BigDecimal("100"), 30));
+                () -> loanService.applyForLoan(1L, new BigDecimal("100"), 30, null));
     }
 
     @Test
     void applyForLoan_shouldRejectWhenAmountExceedsThreeXWalletBalance() {
+        Kyc kyc = Kyc.builder().userId(1L).status(KycVerificationStatus.VERIFIED).build();
+        when(kycOutPutPort.findByUserId(1L)).thenReturn(Optional.of(kyc));
         Wallet wallet = Wallet.builder().userId(1L).balance(new BigDecimal("100")).build();
         when(walletOutPutPort.findByUserId(1L)).thenReturn(Optional.of(wallet));
 
         assertThrows(WalletManagementException.class,
-                () -> loanService.applyForLoan(1L, new BigDecimal("301"), 30));
+                () -> loanService.applyForLoan(1L, new BigDecimal("301"), 30, null));
     }
 
     @Test
     void applyForLoan_shouldCreatePendingLoan() throws Exception {
+        Kyc kyc = Kyc.builder().userId(1L).status(KycVerificationStatus.VERIFIED).build();
+        when(kycOutPutPort.findByUserId(1L)).thenReturn(Optional.of(kyc));
         Wallet wallet = Wallet.builder().userId(1L).balance(new BigDecimal("200")).build();
         User user = User.builder().id(1L).email("john@example.com").build();
         when(walletOutPutPort.findByUserId(1L)).thenReturn(Optional.of(wallet));
         when(userOutPutPort.findById(1L)).thenReturn(Optional.of(user));
         when(loanOutPutPort.save(any(Loan.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Loan loan = loanService.applyForLoan(1L, new BigDecimal("300"), 15);
+        Loan loan = loanService.applyForLoan(1L, new BigDecimal("300"), 15, "app-123");
 
         assertEquals(LoanStatus.PENDING, loan.getStatus());
         assertEquals(new BigDecimal("5.0"), loan.getInterestRate());
+    }
+
+    @Test
+    void applyForLoan_shouldRejectDuplicateIdempotencyKey() {
+        when(loanOutPutPort.findByIdempotencyKey("dup-1")).thenReturn(Optional.of(Loan.builder().build()));
+        assertThrows(xy.walletmanagementsystem.domain.exception.IdempotencyException.class,
+                () -> loanService.applyForLoan(1L, new BigDecimal("100"), 30, "dup-1"));
     }
 
     @Test
@@ -119,7 +149,7 @@ class LoanServiceTest {
     @Test
     void repayLoan_shouldRejectWhenInsufficientFunds() {
         String idempotencyKey = "repay-1";
-        Loan loan = Loan.builder().loanId(1L).userId(1L).status(LoanStatus.DISBURSED).build();
+        Loan loan = Loan.builder().loanId(1L).userId(1L).status(LoanStatus.DISBURSED).balanceDue(new BigDecimal("500")).build();
         Wallet wallet = Wallet.builder().userId(1L).balance(new BigDecimal("10")).build();
         when(loanOutPutPort.findById(1L)).thenReturn(Optional.of(loan));
         when(walletOutPutPort.findByUserId(1L)).thenReturn(Optional.of(wallet));
@@ -129,8 +159,35 @@ class LoanServiceTest {
     }
 
     @Test
+    void repayLoan_shouldRejectWhenAmountExceedsBalance() {
+        Loan loan = Loan.builder().loanId(1L).userId(1L).status(LoanStatus.DISBURSED).balanceDue(new BigDecimal("50")).build();
+        when(loanOutPutPort.findById(1L)).thenReturn(Optional.of(loan));
+
+        assertThrows(WalletManagementException.class,
+                () -> loanService.repayLoan(1L, new BigDecimal("60"), "repay-2"));
+    }
+
+    @Test
+    void repayLoan_shouldMarkPartiallyRepaidWhenBalanceRemains() throws Exception {
+        Loan loan = Loan.builder().loanId(1L).userId(1L).status(LoanStatus.DISBURSED).balanceDue(new BigDecimal("100")).build();
+        Wallet wallet = Wallet.builder().walletId(1L).userId(1L).balance(new BigDecimal("100")).build();
+        User user = User.builder().id(1L).email("john@example.com").build();
+        when(loanOutPutPort.findById(1L)).thenReturn(Optional.of(loan));
+        when(walletOutPutPort.findByUserId(1L)).thenReturn(Optional.of(wallet));
+        when(userOutPutPort.findById(1L)).thenReturn(Optional.of(user));
+        when(walletOutPutPort.save(any(Wallet.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(loanOutPutPort.save(any(Loan.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        loanService.repayLoan(1L, new BigDecimal("30"), "repay-1");
+
+        assertEquals(LoanStatus.PARTIALLY_REPAID, loan.getStatus());
+        assertEquals(new BigDecimal("70"), loan.getBalanceDue());
+        verify(transactionOutPutPort).save(any(Transaction.class));
+    }
+
+    @Test
     void repayLoan_shouldDeductWalletAndMarkLoanRepaid() throws Exception {
-        Loan loan = Loan.builder().loanId(1L).userId(1L).status(LoanStatus.DISBURSED).build();
+        Loan loan = Loan.builder().loanId(1L).userId(1L).status(LoanStatus.PARTIALLY_REPAID).balanceDue(new BigDecimal("30")).build();
         Wallet wallet = Wallet.builder().walletId(1L).userId(1L).balance(new BigDecimal("100")).build();
         User user = User.builder().id(1L).email("john@example.com").build();
         when(loanOutPutPort.findById(1L)).thenReturn(Optional.of(loan));
