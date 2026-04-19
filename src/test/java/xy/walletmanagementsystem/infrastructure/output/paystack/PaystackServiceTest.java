@@ -8,7 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -42,16 +43,20 @@ class PaystackServiceTest {
         field.set(paystackService, SECRET_KEY);
     }
 
+    // -----------------------------------------------------------------------
+    // initializeTransaction — validation edge cases
+    // -----------------------------------------------------------------------
 
     @Nested
-    @DisplayName("initializeTransaction")
-    class InitializeTransaction {
+    @DisplayName("initializeTransaction – validation")
+    class InitializeTransactionValidation {
 
         @Test
         @DisplayName("blank email → WalletManagementException")
         void blankEmail_shouldThrow() {
             assertThrows(WalletManagementException.class,
                     () -> paystackService.initializeTransaction("", new BigDecimal("100")));
+            verifyNoInteractions(restTemplate);
         }
 
         @Test
@@ -59,6 +64,7 @@ class PaystackServiceTest {
         void invalidEmailFormat_shouldThrow() {
             assertThrows(WalletManagementException.class,
                     () -> paystackService.initializeTransaction("not-an-email", new BigDecimal("100")));
+            verifyNoInteractions(restTemplate);
         }
 
         @Test
@@ -66,6 +72,7 @@ class PaystackServiceTest {
         void nullAmount_shouldThrow() {
             assertThrows(WalletManagementException.class,
                     () -> paystackService.initializeTransaction(VALID_EMAIL, null));
+            verifyNoInteractions(restTemplate);
         }
 
         @Test
@@ -73,6 +80,7 @@ class PaystackServiceTest {
         void zeroAmount_shouldThrow() {
             assertThrows(WalletManagementException.class,
                     () -> paystackService.initializeTransaction(VALID_EMAIL, BigDecimal.ZERO));
+            verifyNoInteractions(restTemplate);
         }
 
         @Test
@@ -80,13 +88,22 @@ class PaystackServiceTest {
         void negativeAmount_shouldThrow() {
             assertThrows(WalletManagementException.class,
                     () -> paystackService.initializeTransaction(VALID_EMAIL, new BigDecimal("-5")));
+            verifyNoInteractions(restTemplate);
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // initializeTransaction — Paystack API error paths
+    // -----------------------------------------------------------------------
+
+    @Nested
+    @DisplayName("initializeTransaction – API error paths")
+    class InitializeTransactionApiErrors {
 
         @Test
         @DisplayName("Paystack returns null body → WalletManagementException")
         void nullResponseBody_shouldThrow() {
-            when(restTemplate.exchange(any(), any(), any(), eq(PaystackInitializeResponse.class)))
-                    .thenReturn(ResponseEntity.ok(null));
+            stubExchange(ResponseEntity.ok(null));
             assertThrows(WalletManagementException.class,
                     () -> paystackService.initializeTransaction(VALID_EMAIL, new BigDecimal("100")));
         }
@@ -94,29 +111,35 @@ class PaystackServiceTest {
         @Test
         @DisplayName("Paystack returns status=false → WalletManagementException")
         void paystackStatusFalse_shouldThrow() {
-            PaystackInitializeResponse failResp = buildPaystackResponse(false, null, null);
-            when(restTemplate.exchange(any(), any(), any(), eq(PaystackInitializeResponse.class)))
-                    .thenReturn(ResponseEntity.ok(failResp));
+            stubExchange(ResponseEntity.ok(buildPaystackResponse(false, null, null)));
             assertThrows(WalletManagementException.class,
                     () -> paystackService.initializeTransaction(VALID_EMAIL, new BigDecimal("100")));
         }
 
         @Test
-        @DisplayName("RestTemplate throws → WalletManagementException wrapping network error")
+        @DisplayName("RestTemplate throws network error → WalletManagementException")
         void networkError_shouldThrow() {
-            when(restTemplate.exchange(any(), any(), any(), eq(PaystackInitializeResponse.class)))
+            when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class),
+                    eq(PaystackInitializeResponse.class)))
                     .thenThrow(new RestClientException("timeout"));
             assertThrows(WalletManagementException.class,
                     () -> paystackService.initializeTransaction(VALID_EMAIL, new BigDecimal("100")));
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // initializeTransaction — happy path
+    // -----------------------------------------------------------------------
+
+    @Nested
+    @DisplayName("initializeTransaction – happy path")
+    class InitializeTransactionHappyPath {
 
         @Test
-        @DisplayName("happy path → returns authorization URL and reference")
+        @DisplayName("returns authorization URL, access code and KW-prefixed reference")
         void happyPath_returnsAuthUrl() throws Exception {
-            PaystackInitializeResponse resp = buildPaystackResponse(true,
-                    "https://paystack.com/pay/ref", "access-code-123");
-            when(restTemplate.exchange(any(), any(), any(), eq(PaystackInitializeResponse.class)))
-                    .thenReturn(ResponseEntity.ok(resp));
+            stubExchange(ResponseEntity.ok(
+                    buildPaystackResponse(true, "https://paystack.com/pay/ref", "access-code-123")));
 
             PaystackFundingInitResponse result =
                     paystackService.initializeTransaction(VALID_EMAIL, new BigDecimal("500"));
@@ -128,66 +151,82 @@ class PaystackServiceTest {
         }
 
         @Test
-        @DisplayName("amount is converted to kobo (x100) before sending")
-        void amountConvertedToKobo() throws Exception {
-            PaystackInitializeResponse resp = buildPaystackResponse(true, "https://url", "ac");
-            when(restTemplate.exchange(any(), any(), any(), eq(PaystackInitializeResponse.class)))
-                    .thenReturn(ResponseEntity.ok(resp));
+        @DisplayName("amount is multiplied by 100 (converted to kobo) before calling Paystack")
+        void amountConvertedToKobo_doesNotThrow() throws Exception {
+            stubExchange(ResponseEntity.ok(
+                    buildPaystackResponse(true, "https://paystack.com/pay/ref2", "ac2")));
 
-
+            // 200.50 NGN = 20050 kobo — verifies BigDecimal multiplication is safe
             PaystackFundingInitResponse result =
                     paystackService.initializeTransaction(VALID_EMAIL, new BigDecimal("200.50"));
+
             assertNotNull(result);
+            assertTrue(result.getReference().startsWith("KW-"));
         }
     }
 
-
+    // -----------------------------------------------------------------------
+    // verifyWebhookSignature
+    // -----------------------------------------------------------------------
 
     @Nested
     @DisplayName("verifyWebhookSignature")
     class VerifyWebhookSignature {
 
         @Test
-        @DisplayName("correctly computed HMAC → returns true")
+        @DisplayName("correctly computed HMAC → true")
         void validSignature_returnsTrue() throws Exception {
             String payload = "{\"event\":\"charge.success\"}";
-            String computedSig = computeHmac(payload, SECRET_KEY);
-            assertTrue(paystackService.verifyWebhookSignature(payload, computedSig));
+            assertTrue(paystackService.verifyWebhookSignature(payload, computeHmac(payload)));
         }
 
         @Test
-        @DisplayName("wrong signature → returns false")
+        @DisplayName("wrong signature → false")
         void wrongSignature_returnsFalse() {
-            assertFalse(paystackService.verifyWebhookSignature("{\"event\":\"charge.success\"}", "wrong-sig"));
+            assertFalse(paystackService.verifyWebhookSignature(
+                    "{\"event\":\"charge.success\"}", "wrong-sig"));
         }
 
         @Test
-        @DisplayName("signature computed from different payload → returns false")
+        @DisplayName("HMAC from a different payload → false")
         void signatureFromDifferentPayload_returnsFalse() throws Exception {
-            String sig = computeHmac("different payload", SECRET_KEY);
-            assertFalse(paystackService.verifyWebhookSignature("{\"event\":\"charge.success\"}", sig));
+            assertFalse(paystackService.verifyWebhookSignature(
+                    "{\"event\":\"charge.success\"}", computeHmac("different-payload")));
         }
 
         @Test
-        @DisplayName("empty payload with correct HMAC → returns true")
+        @DisplayName("empty payload with correct HMAC → true")
         void emptyPayload_withCorrectHmac_returnsTrue() throws Exception {
-            String sig = computeHmac("", SECRET_KEY);
-            assertTrue(paystackService.verifyWebhookSignature("", sig));
+            String payload = "";
+            assertTrue(paystackService.verifyWebhookSignature(payload, computeHmac(payload)));
         }
 
         @Test
-        @DisplayName("signature is case-insensitive")
+        @DisplayName("signature matching is case-insensitive (Paystack sends lowercase hex)")
         void signatureCaseInsensitive_returnsTrue() throws Exception {
             String payload = "test-body";
-            String sig = computeHmac(payload, SECRET_KEY).toUpperCase();
-            assertTrue(paystackService.verifyWebhookSignature(payload, sig));
+            assertTrue(paystackService.verifyWebhookSignature(
+                    payload, computeHmac(payload).toUpperCase()));
         }
     }
 
+    // -----------------------------------------------------------------------
+    // Helpers
+    // -----------------------------------------------------------------------
 
-    private String computeHmac(String data, String key) throws Exception {
+    /** Stubs the RestTemplate exchange call with the correctly typed matchers. */
+    private void stubExchange(ResponseEntity<PaystackInitializeResponse> response) {
+        when(restTemplate.exchange(
+                anyString(),
+                eq(HttpMethod.POST),
+                any(HttpEntity.class),
+                eq(PaystackInitializeResponse.class)))
+                .thenReturn(response);
+    }
+
+    private String computeHmac(String data) throws Exception {
         Mac mac = Mac.getInstance("HmacSHA512");
-        mac.init(new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA512"));
+        mac.init(new SecretKeySpec(SECRET_KEY.getBytes(StandardCharsets.UTF_8), "HmacSHA512"));
         byte[] bytes = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
