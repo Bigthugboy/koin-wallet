@@ -44,4 +44,10 @@ public class LoanPersistenceAdapter implements LoanOutPutPort {
                 .map(loanMapper::toDomain)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public Optional<Loan> findByIdempotencyKey(String idempotencyKey) {
+        return loanRepository.findByIdempotencyKey(idempotencyKey)
+                .map(loanMapper::toDomain);
+    }
 }
