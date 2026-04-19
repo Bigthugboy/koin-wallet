@@ -41,5 +41,15 @@ public static final String WELCOME_MESSAGE = "Welcome to Koin Wallet";
     public static final String KYC_DETAILS_RETRIEVED_SUCCESSFULLY = "Kyc details retrieved successfully";
     public static final String TRANSACTION_RETRIEVED_SUCCESSFULLY = "Transaction retrieved successful";
     public static final String TRANSACTIONS_RETRIEVED_SUCCESSFULLY ="Transactions retrieved successful";
+    public static final String LOAN_APPLICATION_SUCCESSFUL = "Loan application successful";
+    public static final String LOAN_APPROVED_SUCCESSFULLY = "Loan approved successfully";
+    public static final String  LOAN_DISBURSED_SUCCESSFULLY="Loan disburse successfully";
+    public static final String LOAN_REPAYMENT_PROCESSED="Loan repayment processed";
+    public static final String LOAN_DETAILS_RETRIEVED_SUCCESSFULLY="Loan details retrieved successfully";
+    public static final String LOANS_RETRIEVED_SUCCESSFULLY ="Loan retrieved successfully";
+    public static final String BALANCE_RETRIEVED_SUCCESSFULLY="Wallet balance retrieved successfully";
+    public static final String  FUNDING_INITIALIZED_REDIRECT_TO_COMPLETE_PAYMENT="Funding wallet initialized , Redirecting to complete payment";
+    public static final String WALLET_FUNDED_SUCCESSFULLY="Wallet funded successfully";
+    public static final String WALLET_CREATED_SUCCESSFULLY="Wallet created successfully";
 
 }
