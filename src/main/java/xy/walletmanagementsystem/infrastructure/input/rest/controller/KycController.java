@@ -35,7 +35,8 @@ public class KycController {
     @PostMapping("/submit")
     @Operation(summary = SwaggerUiConstants.SUBMIT_KYC_SUMMARY, description = SwaggerUiConstants.SUBMIT_KYC_DESCRIPTION)
     public ResponseEntity<ApiResponse<KycResponse>> submitKyc(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody KycRequest request) throws WalletManagementException {
-        Kyc kyc = kycUseCase.submitKyc(userDetails.getId(), request.getBvn(), request.getNin());
+        Kyc kycDetails = restMapper.toKyc(request, userDetails.getId());
+        Kyc kyc = kycUseCase.submitKyc(kycDetails);
         return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(kyc), "KYC details submitted successfully"));
     }
 
