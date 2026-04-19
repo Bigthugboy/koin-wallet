@@ -56,4 +56,9 @@ public class ErrorMessages {
 public static final String AMOUNT_IS_REQUIRED = "amount is required";
 public static final String INVALID_EMAIL_FORMAT = "invalid email provided";
 public static final String TRANSACTION_REFERENCE_NOT_FOUND = "Transaction reference not found";
+    public static final String TRANSACTION_FAILED = "Transaction failed %d";
+    public static final String ERROR_CONNECTING_TO_PAYMENT_GATEWAY = "Error connecting to payment gateway";
+    public static final String INVALID_PAYMENT_WEBHOOK = "Invalid payment webhook";
+    public static final String INVALID_WEBHOOK_PAYLOAD_FORMAT = "Invalid webhook payload format";
+    public static final String WEBHOOK_MISSING_FIELD = "Invalid webhook payload: missing field '%s'";
 }
