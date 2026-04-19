@@ -29,10 +29,11 @@ public class UserService implements UserUseCase {
         User existingUser = userOutPutPort.findById(userId)
                 .orElseThrow(() -> new WalletManagementException(ErrorMessages.USER_NOT_FOUND));
 
+
         if (userDetails.getFullName() != null) {
             existingUser.setFullName(userDetails.getFullName());
         }
-        if (userDetails.getPhoneNumber() != null) {
+        if (userDetails.getPhoneNumber() != null && StringUtils.isNotBlank(userDetails.getPhoneNumber())) {
             existingUser.setPhoneNumber(userDetails.getPhoneNumber());
         }
         existingUser.setDateUpdate(LocalDateTime.now());
