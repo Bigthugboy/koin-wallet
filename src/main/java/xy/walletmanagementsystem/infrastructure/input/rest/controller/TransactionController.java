@@ -17,6 +17,8 @@ import xy.walletmanagementsystem.infrastructure.input.rest.data.response.ApiResp
 import xy.walletmanagementsystem.infrastructure.input.rest.data.response.TransactionResponse;
 import xy.walletmanagementsystem.infrastructure.input.rest.mapper.RestMapper;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,6 +35,7 @@ public class TransactionController {
     private final RestMapper restMapper;
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = SwaggerUiConstants.GET_ALL_TRANSACTIONS_SUMMARY, description = SwaggerUiConstants.GET_ALL_TRANSACTIONS_DESCRIPTION)
     public ResponseEntity<ApiResponse<List<TransactionResponse>>> getAllTransactions() {
         List<Transaction> transactions = transactionOutPutPort.findAll();
@@ -43,6 +46,7 @@ public class TransactionController {
     }
 
     @GetMapping("/{transactionId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = SwaggerUiConstants.GET_TRANSACTION_SUMMARY, description = SwaggerUiConstants.GET_TRANSACTION_DESCRIPTION)
     public ResponseEntity<ApiResponse<TransactionResponse>> getTransaction(@PathVariable Long transactionId) {
         Transaction transaction = transactionOutPutPort.findById(transactionId)
