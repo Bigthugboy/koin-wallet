@@ -20,6 +20,9 @@ import xy.walletmanagementsystem.infrastructure.input.rest.mapper.RestMapper;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static xy.walletmanagementsystem.domain.messages.ConstantMessages.TRANSACTIONS_RETRIEVED_SUCCESSFULLY;
+import static xy.walletmanagementsystem.domain.messages.ConstantMessages.TRANSACTION_RETRIEVED_SUCCESSFULLY;
+
 @RestController
 @RequestMapping(UrlConstant.TRANSACTION_URL)
 @RequiredArgsConstructor
@@ -36,7 +39,7 @@ public class TransactionController {
         List<TransactionResponse> response = transactions.stream()
                 .map(restMapper::toResponse)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(response, "All transactions retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, TRANSACTIONS_RETRIEVED_SUCCESSFULLY));
     }
 
     @GetMapping("/{transactionId}")
@@ -44,7 +47,8 @@ public class TransactionController {
     public ResponseEntity<ApiResponse<TransactionResponse>> getTransaction(@PathVariable Long transactionId) {
         Transaction transaction = transactionOutPutPort.findById(transactionId)
                 .orElseThrow(() -> new RuntimeException("Transaction not found"));
-        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(transaction), "Transaction retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(restMapper.toResponse(transaction), TRANSACTION_RETRIEVED_SUCCESSFULLY));
     }
+
 
 }
