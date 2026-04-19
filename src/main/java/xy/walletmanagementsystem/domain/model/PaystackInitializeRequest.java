@@ -1,4 +1,4 @@
-package xy.walletmanagementsystem.infrastructure.output.paystack;
+package xy.walletmanagementsystem.domain.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
