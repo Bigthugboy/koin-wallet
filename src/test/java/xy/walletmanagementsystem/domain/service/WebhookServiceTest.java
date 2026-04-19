@@ -52,7 +52,7 @@ class WebhookServiceTest {
         String response = webhookService.handlePaystackWebhook("sig", payload);
 
         assertEquals("Webhook processed", response);
-        verify(walletUseCase).fundWallet(eq(1L), eq(new BigDecimal("55")), eq("ref-1"));
+        verify(walletUseCase).fundWallet(eq(1L), eq(new BigDecimal("55")), eq("ref-1"),eq("ref-1"));
         verify(notificationOutPutPort).sendPaymentNotification(eq("john@example.com"), contains("ref-1"));
     }
 
