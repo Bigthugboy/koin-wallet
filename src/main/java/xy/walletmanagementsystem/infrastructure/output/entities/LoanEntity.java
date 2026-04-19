@@ -13,7 +13,15 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "loans")
+@Table(
+    name = "loans",
+    indexes = {
+        @Index(name = "idx_loans_user_id", columnList = "userId"),
+        @Index(name = "idx_loans_status", columnList = "status"),
+        @Index(name = "idx_loans_idempotency_key", columnList = "idempotencyKey"),
+        @Index(name = "idx_loans_date_created", columnList = "dateCreated")
+    }
+)
 @Getter
 @Setter
 @AllArgsConstructor
@@ -21,7 +29,7 @@ import java.time.LocalDateTime;
 @Builder
 public class LoanEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column(nullable = false)
@@ -41,6 +49,12 @@ public class LoanEntity {
 
     @Column(columnDefinition = "TEXT")
     private String repaymentSchedule;
+
+    @Column(precision = 19, scale = 2)
+    private BigDecimal balanceDue;
+
+    @Column(unique = true)
+    private String idempotencyKey;
 
     private LocalDateTime dateDisbursed;
     private LocalDateTime dateCreated;
