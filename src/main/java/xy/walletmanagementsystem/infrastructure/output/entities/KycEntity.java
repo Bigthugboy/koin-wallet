@@ -12,7 +12,15 @@ import xy.walletmanagementsystem.domain.enums.KycStatus;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "kyc_details")
+@Table(
+    name = "kyc_details",
+    indexes = {
+        @Index(name = "idx_kyc_user_id", columnList = "userId"),
+        @Index(name = "idx_kyc_bvn", columnList = "bvn"),
+        @Index(name = "idx_kyc_nin", columnList = "nin"),
+        @Index(name = "idx_kyc_status", columnList = "status")
+    }
+)
 @Getter
 @Setter
 @AllArgsConstructor
@@ -20,7 +28,7 @@ import java.time.LocalDateTime;
 @Builder
 public class KycEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column(nullable = false, unique = true)
